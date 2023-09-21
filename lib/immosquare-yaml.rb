@@ -73,9 +73,22 @@ module ImmosquareYaml
       begin
         raise("File not found") if !File.exist?(file_path)
 
+        ##===========================================================================##
+        ## Backup original content for restoration after parsing
+        ##===========================================================================##
+        original_content = File.read(file_path)
+
+        ##===========================================================================##
+        ## clean, parse & Sort
+        ##===========================================================================##
         clean_yml(file_path)
         yaml_final = parse_xml(file_path)
         yaml_final = sort_by_key(yaml_final, options[:sort]) if options[:sort]
+
+        ##===========================================================================##
+        ## Restore original content
+        ##===========================================================================##
+        File.write(file_path, original_content)
         yaml_final
       rescue StandardError => e
         puts(e.message)
