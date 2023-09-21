@@ -5,7 +5,9 @@ require_relative "spec/fixtures/sample"
 namespace :immosquare_yaml do
   desc "Clean the sample YAML file"
   task :clean_sample do
-    ImmosquareYaml.clean("spec/fixtures/sample.en.yml")
+    input  = "spec/fixtures/sample.en.yml"
+    output = "spec/fixtures/sample_cleaned.en.yml"
+    ImmosquareYaml.clean(input, :output => output)
   end
 
   task :parse_sample do

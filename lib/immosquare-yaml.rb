@@ -32,10 +32,18 @@ module ImmosquareYaml
       ##============================================================##
       ## Default options
       ##============================================================##
-      options = {:sort => true}.merge(options)
+      options = {
+        :sort   => true,
+        :output => file_path
+      }.merge(options)
       
       begin
         raise("File not found") if !File.exist?(file_path)
+
+        ##===========================================================================##
+        ## Backup original content for restoration after parsing if necessary
+        ##===========================================================================##
+        original_content = File.read(file_path) if options[:output] != file_path
 
         ##===========================================================================##
         ## The cleaning procedure is initialized with a comprehensive clean, transforming 
@@ -46,7 +54,16 @@ module ImmosquareYaml
         yaml_final = parse(file_path)
         yaml_final = sort_by_key(yaml_final, options[:sort]) if options[:sort]
         yaml_final = dump(yaml_final)
-        File.write(file_path, yaml_final)  
+
+        ##===========================================================================##
+        ## Restore original content if necessary
+        ##===========================================================================##
+        File.write(file_path, original_content) if options[:output] != file_path
+        
+        ##===========================================================================##
+        ## Write the cleaned YAML content to the specified output file
+        ##===========================================================================##
+        File.write(options[:output], yaml_final)  
         true
       rescue StandardError => e
         puts(e.message)
