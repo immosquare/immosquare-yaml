@@ -39,11 +39,16 @@ module ImmosquareYaml
       
       begin
         raise("File not found") if !File.exist?(file_path)
+        
+        ##===========================================================================##
+        ## Setup variables
+        ##===========================================================================##
+        output_file_path = options[:output]
 
         ##===========================================================================##
         ## Backup original content for restoration after parsing if necessary
         ##===========================================================================##
-        original_content = File.read(file_path) if options[:output] != file_path
+        original_content = File.read(file_path) if output_file_path != file_path
 
         ##===========================================================================##
         ## The cleaning procedure is initialized with a comprehensive clean, transforming 
@@ -51,19 +56,20 @@ module ImmosquareYaml
         ## rewriting it to the YAML file in its cleaned and optionally sorted state.
         ##===========================================================================##
         clean_yml(file_path)
-        yaml_final = parse(file_path)
-        yaml_final = sort_by_key(yaml_final, options[:sort]) if options[:sort]
-        yaml_final = dump(yaml_final)
+        parsed_yml = parse(file_path)
+        parsed_yml = sort_by_key(parsed_yml, options[:sort])
+        parsed_yml = dump(parsed_yml)
 
         ##===========================================================================##
         ## Restore original content if necessary
         ##===========================================================================##
-        File.write(file_path, original_content) if options[:output] != file_path
+        File.write(file_path, original_content) if output_file_path != file_path
         
         ##===========================================================================##
         ## Write the cleaned YAML content to the specified output file
         ##===========================================================================##
-        File.write(options[:output], yaml_final)  
+        FileUtils.mkdir_p(File.dirname(output_file_path))
+        File.write(output_file_path, parsed_yml)  
         true
       rescue StandardError => e
         puts(e.message)

@@ -22,17 +22,17 @@ en:
     special7: "&ampersand"
     special8: "#hash"
     special9: "@at"
-  description1: "This is the first line of test.\nThis is the second line of test.\nThis is the third line of test."
+  description1: "This is the first line of test #1 \U0001F600.\nThis is the second line of test#1.\nThis is the third line of test.#1"
   description2: |
-    This is the first line of test.
-    This is the second line of test.
-    This is the third line of test.
+    This is the first line of test #2 \U0001F600.
+    This is the second line of test #2.
+    This is the third line of test #2.
   description3: |4-
-      This is the first line of test.
-      This is the second line of test.
-      This is the third line of test.
+      This is the first line of test #3 \U0001F600.
+      This is the second line of test #3.
+      This is the third line of test #3.
   description4: > 
-    This is the first line of test.
-    This is the second line of test.
-    This is the third line of test.  
+    This is the first line of test #4 \U0001F600.
+    This is the second line of test #4.
+    This is the third line of test #4.  
 
