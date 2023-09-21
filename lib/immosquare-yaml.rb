@@ -151,40 +151,54 @@ module ImmosquareYaml
 
     private
 
-    ##============================================================##
-    ## On veut que le fichier finisse toujours par une ligne vide.
-    ## pour que  l'on fasse un dernier passage et faire un clean
-    ## de l[-1] si nécéssaire (voir plus bas les block multilines)
-    ## On fait cela avec des commandes sytème car Ruby ne propose
-    ## pas cela de base.
-    ##============================================================##
+    ##===========================================================================##
+    ## This method ensures the file ends with a single newline, facilitating
+    ## cleaner multi-line blocks. It operates by reading all lines of the file,
+    ## removing any empty lines at the end, and then appending a newline. 
+    ## This guarantees the presence of a newline at the end, and also prevents 
+    ## multiple newlines from being present at the end.
+    ##
+    ## Params:
+    ## +file_path+:: The path to the file to be normalized.
+    ##
+    ## Returns:
+    ## The total number of lines in the normalized file.
+    ##===========================================================================##
     def normalize_last_line(file_path)
-      lines     = File.read(file_path).lines
-      lines[-1] = "#{lines[-1]}#{NEWLINE}" if !lines[-1].end_with?(NEWLINE)
-      
       ##============================================================##
-      ## Supprimez toutes les lignes vides à la fin du fichier
+      ## Read all lines from the file
+      ## https://gist.github.com/guilhermesimoes/d69e547884e556c3dc95
       ##============================================================##
-      lines.pop while lines.last && lines.last.strip.empty?
-    
-      ##============================================================##
-      ## On ajoute notre ligne avec un retour à la ligne
-      ##============================================================##
-      lines += [NEWLINE]
-      
-      ##============================================================##
-      ## On écrit le fichier
-      ##============================================================##
-      File.write(file_path, lines.join)
+      lines = File.read(file_path).lines
 
       ##============================================================##
-      ## On retourne le nombre de ligne du fichier
+      ## Ensure the last line ends with a newline character
       ##============================================================##
+      lines[-1] = "#{lines[-1]}#{NEWLINE}" if !lines[-1].end_with?(NEWLINE)
+      
+      ##===========================================================================##
+      ## Remove all trailing empty lines at the end of the file
+      ##===========================================================================##
+      lines.pop while lines.last && lines.last.strip.empty?
+    
+      ##===========================================================================##
+      ## Append a newline at the end to maintain the file structure
+      ###===========================================================================##
+      lines += [NEWLINE]
+      
+      ##===========================================================================##
+      ## Write the modified lines back to the file
+      ##===========================================================================##
+      File.write(file_path, lines.join)
+
+      ##===========================================================================##
+      ## Return the total number of lines in the modified file
+      ##===========================================================================##
       lines.size
     end
 
     ##============================================================##
-    ## On fait un clean du fichier yml en profondeur
+    ## Deeply cleans the specified YAML file
     ##============================================================##
     def clean_yml(file_path)
       lines             = []
@@ -194,64 +208,52 @@ module ImmosquareYaml
       weirdblock        = false
       line_index        = 1
 
-      ##============================================================##
-      ## On veut savoir le nombre de ligne du fichier pour pouvoir
-      ## savoir quand on est sur la dernière ligne
-      ## https://gist.github.com/guilhermesimoes/d69e547884e556c3dc95
-      ## On commance par normaliser le fichier avec une dernière ligne
-      ## vide à chaque fois
-      ##============================================================##
+      ##===================================================================================#
+      ## First, we normalize the file by ensuring it always ends with an empty line
+      ## This also allows us to get the total number of lines in the file, 
+      ## helping us to determine when we are processing the last line
+      ###===================================================================================#
       line_count = normalize_last_line(file_path)
       
       
       File.foreach(file_path) do |current_line|
         last_line = line_index == line_count
-        ##============================================================##
-        ## On clean la ligne... on enlève les multiples espaces
-        ## après un charactère non espace.
-        ## (?<=\S) : Ceci est une assertion positive lookbehind qui 
-        ## vérifie la présence d'un caractère non-espace juste avant
-        ## les espaces que nous voulons correspondre. 
-        ## Elle ne consomme pas de caractères dans la correspondance, 
-        ## elle vérifie juste leur présence.
-        ## \s+ : Ceci correspond à un ou plusieurs espaces blancs qui sont 
-        ## précédés d'un caractère non-espace
-        ##============================================================##
+        
+        ##===================================================================================#
+        ## Cleaning the current line by removing multiple spaces occurring after a non-space character
+        ##===================================================================================#
         current_line = current_line.to_s.gsub(/(?<=\S)\s+/, SPACE)
 
         ##============================================================##
-        ## on fait un rstrip sur la ligne pour effacer tous les blancs
-        ## potentiels à droite
+        ## Trimming potential whitespace characters from the end of the line
         ##============================================================##
         current_line = current_line.rstrip
         
-        ##============================================================##
-        ## Détection si on est dans une ligne blanche (execpté la 
-        ## dernière) pour faire un traitement sur la l[-1]. On veut aussi
-        ## passer sur la ligne si on est dans un block
-        ##============================================================##
+
+        ##===================================================================================#
+        ## Detecting blank lines to specially handle the last line within a block; 
+        ## if we are inside a block or it's the last line, we avoid skipping
+        ##===================================================================================#
         blank_line = current_line.gsub(NEWLINE, "").empty?
         next if !(last_line || inblock || !blank_line)
 
         ##============================================================##
-        ## Détection du niveau d'indentation
+        ## Identifying the indentation level of the current line
         ##============================================================##
         last_inblock                 = inblock
         indent_level                 = current_line[/\A */].size
         need_to_clean_prev_inblock   = inblock    == true && ((!blank_line && indent_level <= inblock_indent) || last_line)
         need_to_clen_prev_weirdblock = weirdblock == true && (indent_level <= weirdblock_indent || last_line)
         
-        ##============================================================##
-        ## On remet à false le inblock si on était dans un block
-        ## et on vient de sortir...On recupère le block en entier et
-        ## on le clean
-        ##============================================================##
+        ##===================================================================================#
+        ## Handling the exit from a block: 
+        ## if we are exiting a block, we clean the entire block
+        ##===================================================================================#
         if need_to_clean_prev_inblock
           inblock = false
           ##============================================================##
-          ## On récupère le block en entier en remontant les lignes
-          ## jusqu'à avoir une indentation inférieur à celle du block
-          ## À ce moment on sait quel type de block c'est.
+          ## Extracting the entire block by tracing back lines until we find a lesser indentation
+          ## Subsequently determining the type of block we are in and clean accordingly
           ##============================================================##
           i            = -1
           block_indent = lines[i][/\A */].size
@@ -262,22 +264,25 @@ module ImmosquareYaml
           end
 
           ##============================================================##
-          ## | => Blocs littéraux : Il conserve les sauts de ligne tels 
-          ## qu'ils sont donnés dans le bloc de texte.
-          ## Nouvelle ligne finale : Une nouvelle ligne est ajoutée à la
-          ## fin du texte.
-          ## |- => Blocs littéraux : Il conserve les sauts de ligne tels 
-          ## qu'ils sont donnés dans le bloc de texte.
-          ## Nouvelle ligne finale : Le saut de ligne final est supprimé, 
-          ## contrairement à l'option |
-          ## > Blocs pliés : Il remplace chaque nouvelle ligne par un espace, 
-          ## transformant le bloc de texte en une seule ligne. 
-          ## Cependant, il conserve les nouvelles lignes qui suivent une ligne vide.
-          ## Nouvelle ligne finale : Une nouvelle ligne est ajoutée à la fin du texte.
+          ## Handling different types of blocks (literal blocks "|",
+          ## folded blocks ">", etc.)
+          ## and applying the respective formatting strategies based on 
+          ## block type and additional indent specified
+          ##
+          ## | => Literal blocks: It keeps line breaks as
+          ## that they are given in the text block.
+          ## Final new line: A new line is added to the
+          ## end of text.
+          ## |- => Literal blocks: It keeps line breaks as
+          ## that they are given in the text block.
+          ## New final line: The final line break is deleted,
+          ## unlike the option |
+          ## > Folded blocks: It replaces each new line with a space,
+          ## transforming the block of text into a single line.
+          ## However, it preserves newlines that follow an empty line.
+          ## Final new line: A new line is added at the end of the text.
           ## ===
-          ## On peut aussi avoir des |4- ou |4+ pour dire avec indentation 4
-          ## le plus au moins et pour autre chose..c'est pour la gestion
-          ## des \n à la fin
+          ## We can also have |4- or |4+ to say with indentation 4
           ##============================================================##
           block_lines  = block_lines.reverse
           block_type   = lines[i - 1].split(": ").last
@@ -296,16 +301,17 @@ module ImmosquareYaml
           end
         end
 
-        ##============================================================##
-        ## On fait pareil avec les "faux multilines"
+        ##===================================================================================#
+        ## Handling 'weirdblocks': cases where multi-line values are enclosed in quotes, 
+        ## which should actually be single-line values
         ##  key: " 
         ##    line1
         ##    line2
-        ##    line3
+        ##    line3"
         ##  key: ' 
         ##    line1
         ##    line2
-        ##    line3
+        ##    line3'
         ##============================================================##
         if need_to_clen_prev_weirdblock
           weirdblock  = false 
@@ -313,76 +319,72 @@ module ImmosquareYaml
           lines[-1]   = "#{key}: #{clean_value(value)}"
         end
 
-        ##============================================================##
-        ## Si on n'est pas dans un block et que la ligne précédente
-        ## est une key.
-        ## on recupère l'indentation de la ligne précédente
-        ## et si elle est suérieur ou égale à l'indentation de la ligne
-        ## courante alors la valeur de la ligne précédante est nulle
-        ##============================================================##
+        ##===================================================================================#
+        ## Handling keys without values: if the previous line ends with a colon (:) and is not 
+        ## followed by a value, we assign 'null' as the value
+        ##===================================================================================#
         if inblock == false && weirdblock == false && lines[-1] && lines[-1].end_with?(":") && last_inblock == false
           prev_indent = lines[-1][/\A */].size
           lines[-1] += " null" if prev_indent >= indent_level
         end
 
         ##============================================================##
-        ## Découpage de la ligne en clé et valeur. Il faut découper
-        ## sur ":" et pas sur ": " car on n'a pas d'espace quand c'est
-        ## juste une clé.. mais on n'a un retour à la ligne
+        ## Splitting the current line into key and value parts for further processing
+        ## You have to split on ":" and not on ": " because we don't have a space when it's
+        ## just a key.. but we have a newline
         ## fr: => ["fr", "\n"]
         ##============================================================##
         split = inblock || weirdblock ? [current_line] : current_line.strip.split(":", 2)
         key   = inblock || weirdblock ? nil : split[0].to_s.strip
-        
-        ##============================================================##
-        ## Si la ligne est en commentaire on la reprend tels que
-        ## en enlevant les retours à la ligne
+
+        ##===================================================================================#
+        ## Line processing based on various conditions such as being inside a block, 
+        ## starting with a comment symbol (#), or being a part of a 'weirdblock' 
+        ## Each case has its specific line cleaning strategy
+        ## ----
+        ## If the line is commented out, we keep and we remove newlines
         ##============================================================##
         if current_line.lstrip.start_with?("#")
           lines << current_line.gsub(NEWLINE, "")
-        ##============================================================##
-        ## Si est en dans un block (multiline > | ou |-), on clean
-        ## la ligne car celle ci peut commencer par des espaces tabs etc
-        ## et on la met avec l"indenteur du block
-        ##============================================================##
+        ##================================================= ============##
+        ## If is in a block (multiline > | or |-), we clean
+        ## the line because it can start with spaces tabs etc.
+        ## and put it with the block indenter
+        ##================================================= ============##
         elsif inblock == true
           current_line = current_line.gsub(NEWLINE, "").strip
           lines << "#{SPACE * (inblock_indent + INDENT_SIZE)}#{current_line}"
-        ##============================================================##
-        ## On rstrip la ligne, si la ligne fini par un charactère 
-        ## de multi-lines et que nous avons un key. On commence un block
-        ## multi-lines qui commmence par > ou | avec un nombre optionel
-        ## et un - ou pas +
-        ## Cette regex fonctionne comme suit :
-        ##========================================
-        ## \S+      : Tous les caractères non-espace au début de la ligne.
-        ## :        : Correspond à la chaîne de caractères ": " littéralement (espace inclus).
-        ## [>|]     : Correspond à un seul caractère qui est soit ">" soit "|".
-        ## (\d*)    : Groupe de capture qui correspond à zéro ou plusieurs chiffres (0-9).
-        ## [-+]?    : Correspond à zéro ou un caractère qui est soit "-" soit "+".
-        ## $        : Correspond à la fin de la ligne/chaîne.
-        ##============================================================##
+        ##================================================= ============##
+        ## if the line ends with a multi-line character and we have a key.
+        ## we start a block
+        ## The regex works as follows:
+        ##=========================================================
+        ## \S+    : All non-space characters at the start of the line.
+        ## :      : Matches the string ": " literally (space included).
+        ## [>|]   : Matches a single character that is either ">" or "|".
+        ## (\d*)  : Capture group that matches zero or more digits (0-9).
+        ## [-+]?  : Matches zero or a character that is either "-" or "+".
+        ## $      : Matches the end of the line/string.
+        ##================================================= ============##
         elsif current_line.rstrip.match?(/\S+: [>|](\d*)[-+]?$/)
           lines << current_line.gsub(NEWLINE, "")
           inblock_indent = indent_level
           inblock        = true
         ##============================================================##
-        ## On est dans le cas de figure d'une de block multiline
-        ## mais sans > | ou |- à la fin de la ligne
-        ## qui devrait être en réalité inline.
+        ## We are in the scenario of a multiline block
+        ## but without > | or |- at the end of the line
+        ## which should actually be inline.
         ## mykey:
         ##   line1
         ##   line2
         ##   line3
-        ## my key : line1 line2 line3
-        ## la clé :fr par exemple ne rentre pas dans cas cas de figure
-        ## car le split donne ["fr", "\n"]
+        ## my key: line1 line2 line3
         ##============================================================##
         elsif split.size < 2
           lines[-1] = (lines[-1] + " #{current_line.lstrip}").gsub(NEWLINE, "")
         ##============================================================##
-        ## Sinon nous sommes dans le cas d'une ligne classique
-        ## key: value  ou key: sans value
+        ## Otherwise we are in the case of a classic line
+        ## key: value or key: without value
         ##============================================================##
         else
           key           = clean_key(key)
@@ -393,8 +395,8 @@ module ImmosquareYaml
             value = split[1].to_s.strip
             
             ##============================================================##
-            ## On est dans un block multiline qui devrait être un inline
-            ## si la value commence par un " et que le nombre de " est impair
+            ## We are in a multiline block which should be an inline
+            ## if the value starts with a " and the number of " is odd
             ##============================================================##
             if (value.start_with?(DOUBLE_QUOTE) && value.count(DOUBLE_QUOTE).odd?) || (value.start_with?(SIMPLE_QUOTE) && value.count(SIMPLE_QUOTE).odd?)
               weirdblock        = true
@@ -406,21 +408,21 @@ module ImmosquareYaml
           end
 
           ##============================================================##
-          ## Fusion de la clé et de la valeur nettoyées pour former la ligne nettoyée
+          ## Merging the cleaned key and value to form the cleaned row
           ##============================================================##
           lines << current_line
         end
 
         ##============================================================##
-        ## On incrémente le numéro de ligne
+        ## We increment the line number
         ##============================================================##
         line_index += 1
       end
 
       ##============================================================##
-      ## On fini le fichier avec un retour à la ligne et on supprime
-      ## les espaces sur les lignes "vides" + les doubles espaces
-      ## avec la même technique que plus haut
+      ## We finish the file with a newline and we delete
+      ## spaces on "empty" lines + double spaces
+      ## with the same technique as above
       ##============================================================##
       lines += [""]
       lines = lines.map {|l| (l.strip.empty? ? "" : l).to_s.gsub(/(?<=\S)\s+/, SPACE) }
@@ -428,103 +430,117 @@ module ImmosquareYaml
     end    
 
     ##============================================================##
-    ## On nettoie la clé
-    ## =================
-    ## - on la met force en string pour éviter tout problème avec
-    ## les gsub (si c'est un integer par exemple)
-    ## - on regarde si c'est un integer
-    ## - on emlève les quotes s'ils sont présents
-    ## - on remets les quotes si c'est une clé réservée ou un integer
-    ##  /\A(['“‘”’"])(.*)\1\z/
-    ## \A :         Ceci est une ancre qui correspond au début de la chaîne. Elle s'assure que notre motif commence au tout début de la chaîne.
-    ## (['“‘”’"]) : Ceci est un groupe de capture qui correspond à un seul caractère de guillemet. Il peut correspondre à l'un des caractères spécifiés entre les crochets, qui incluent divers types de guillemets simples et doubles. Le caractère correspondant est "capturé" et peut être réutilisé dans le reste de l'expression régulière grâce à la référence arrière \1.
-    ## (.*) :       Ceci est un autre groupe de capture qui correspond à zéro ou plusieurs de n'importe quel caractère (sauf un saut de ligne, sauf si l'option m est activée). Il "capture" toute la chaîne entre les guillemets que nous avons capturés précédemment.
-    ## \1 :         Ceci est une référence arrière au premier groupe de capture. Elle correspond au même caractère que celui que nous avons capturé avec notre premier groupe de capture. Cela garantit que nous avons le même caractère de guillemet à la fin de la chaîne que celui que nous avons au début.
-    ## \z :         Ceci est une ancre qui correspond à la fin de la chaîne. Elle s'assure que notre motif correspond à la toute fin de la chaîne, garantissant ainsi que les guillemets encadrent toute la chaîne.
-    ##
-    ## Ensuite, dans le deuxième argument de gsub, nous utilisons \2 pour nous référer au contenu capturé par le deuxième groupe de capture, ce qui nous permet d'obtenir la chaîne sans les guillemets :
+    ## clean_key Function
+    ## Purpose: Clean up and standardize YAML keys
+    ##============================================================##
+    ## Strategy:
+    ## 1. Forcefully convert the key to a string to handle gsub operations, especially if it's an integer.
+    ## 2. Check if the key is an integer.
+    ## 3. Remove quotes if they are present.
+    ## 4. Re-add quotes if the key is a reserved word or an integer.
+    #
+    ## Regular Expression Explanation:
+    ## /\A(['“‘”’"])(.*)\1\z/
+    ## \A:         Matches the start of the string, ensuring our pattern begins at the very start of the string.
+    ## (['“‘”’"]): Captures a single quote character. It matches any of the characters specified within the brackets.
+    ##             This includes various types of single and double quotes.
+    ## (.*) :      Captures zero or more of any character. It "captures" the entirety of the string between the quotes.
+    ## \1:         Refers back to the first captured group, ensuring the same type of quote character is found at the end.
+    ## \z:         Matches the end of the string, ensuring our pattern matches up to the very end.
+    #
+    ## In the second argument of gsub, we use '\2' to refer back to the content captured by the second capture group.
+    ## This allows us to fetch the string without the surrounding quotes.
     ##============================================================##
     def clean_key(key)
+      ##============================================================##
+      ## Convert key to string to avoid issues with gsub operations
+      ## + Check if the key is an integer 
+      ##============================================================##
       key    = key.to_s
       is_int = key =~ /\A[-+]?\d+\z/
-      key    = key.gsub(/\A(['“”‘’"]?)(.*)\1\z/, '\2')
-      key    = "\"#{key}\"" if key.in?(RESERVED_KEYS) || is_int
+
+      ##============================================================##
+      ## Remove surrounding quotes from the key
+      ## Re-add quotes if the key is in the list of reserved keys or is an integer
+      ##============================================================##
+      key = key.gsub(/\A(['“”‘’"]?)(.*)\1\z/, '\2')
+      key = "\"#{key}\"" if key.in?(RESERVED_KEYS) || is_int
       key
     end
-
+    
     ##============================================================##
-    ## Dans le cas des "inblock", on n'a pas besoin de mettre des
-    ## quotes autour de la value. Car c'est déjà execpt dans le
-    ## language YML
-    ##============================================================##
+    ## clean_value Function
+    ## Purpose: Sanitize and standardize YAML values
+    ## In YAML "inblock" scenarios, there's no need to add quotes
+    ## around values as it's inherently handled.
+    ## ============================================================ ##
     def clean_value(value, with_quotes_verif = true)
       ##============================================================##
-      ## On met la value en string pour éviter tout problème dans
-      ## les taitement suivants
+      ## Convert value to string to prevent issues in subsequent operations
       ##============================================================##
       value = value.to_s
       
       ##============================================================##
-      ## On enlève les retours à la ligne en fin de value si il y 
-      ## en a un. (À faire avant le strip pour le cas où cela fini
-      ## par un espace pour un retour à la ligne)
-      ##============================================================##
+      ## Remove newline characters at the end of the value if present.
+      ## This should be done prior to strip operation to handle scenarios 
+      ## where the value ends with a space followed by a newline.
+      ###============================================================##
       value = value[0..-2] if value.end_with?(NEWLINE)
 
+
       ##============================================================##
-      ## On enlève tous les tabs, retours chariot, form feed,
-      ## \t : correspond à une tabulation
-      ## \r : correspond à un retour chariot (carriage return)
-      ## \f : correspond à un form feed
-      ## \v : correspond à une tabulation verticale
-      ## On garde les \n
+      ## Clean up the value:
+      ## - Remove tabs, carriage returns, form feeds, and vertical tabs. 
+      ## \t: corresponds to a tab
+      ## \r: corresponds to a carriage return
+      ## \f: corresponds to a form feed
+      ## \v: corresponds to a vertical tab
+      ## We keep the \n
       ##============================================================##
       value = value.gsub(/[\t\r\f\v]+/, "")
       
       ##============================================================##
-      ## On remplace les multiples espaces par un seul espace
+      ## Replace multiple spaces with a single space.
       ##============================================================##
       value = value.gsub(/ {2,}/, SPACE)
       
       ##============================================================##
-      ## On strip la value pour enlever les espaces en début et fin
+      ## Trim leading and trailing spaces.
       ##============================================================##
       value = value.strip
       
       ##============================================================##
-      ## Remplacement des guillemets spéciaux par des guillemets 
-      ## simples standards
+      ## Replace special quotes with standard single quotes.
       ##============================================================##
       value = value.gsub(WEIRD_QUOTES_REGEX, SIMPLE_QUOTE)
 
       ##============================================================##
-      ## Suppression des quotes entourant la valeur, 
-      ## s'ils sont présents. On va remetre par la suite si besoin
+      ## Remove quotes surrounding the value if they are present.
+      ## They will be re-added later if necessary.
       ##============================================================##
       value = value[1..-2] if (value.start_with?(DOUBLE_QUOTE) && value.end_with?(DOUBLE_QUOTE)) || (value.start_with?(SIMPLE_QUOTE) && value.end_with?(SIMPLE_QUOTE))
-        
 
       ##============================================================##
-      ## On traite les emojis qui serait sous forme \U0001F600
+      ## Convert emoji representations such as \U0001F600 to their respective emojis.
       ##============================================================##
       value = value.gsub(/\\U([0-9A-Fa-f]{8})/) { [::Regexp.last_match(1).to_i(16)].pack("U*") }
 
-      ##============================================================##
-      ## Gestion des cas où la valeur doit être entourée de guillemets
-      ## if :
-      ## value.include?(": ")                   => key: text with : here
+      ##=============================================================##
+      ## Handling cases where the value must be surrounded by quotes
+      ## if:
+      ## value.include?(": ")                   => key: text with: here
       ## value.include?(" #")                   => key: text with # here
-      ## value.include?(NEWLINE)                => key: Ligne 1\nLigne 2\nLigne 3
-      ## value.include?('\n')                   => key: Ligne 1"\n"Ligne 2"\n"Ligne 3
+      ## value.include?(NEWLINE)                => key: Line 1\nLine 2\nLine 3
+      ## value.include?('\n')                   => key: Line 1"\n"Line 2"\n"Line 3
       ## value.start_with?(*YML_SPECIAL_CHARS)  => key: @text
       ## value.end_with?(":")                   => key: text:
       ## value.in?(RESERVED_KEYS)               => key: YES
-      ## value.start_with?(SPACE)               => key: ' text'
+      ## value.start_with?(SPACE)               => key: 'text'
       ## value.end_with?(SPACE)                 => key: text '
-      ## else :
-      ## gestiion de "" et " ". Pas possible d'avoir plus d'espaces
-      ## car on a déjà suppriné les doubles espaces
-      ##============================================================##
+      ## else:
+      ## management of "" and " ". Not possible to have more spaces
+      ## because we have already removed the double spaces
+      ##=============================================================##
       if value.present?
         value = "\"#{value}\"" if (value.include?(": ") || 
                                   value.include?(" #") ||
@@ -544,7 +560,7 @@ module ImmosquareYaml
     end
 
     ##============================================================##
-    ## Deep transform values
+    ## Deep transform values resursively
     ##============================================================##
     def deep_transform_values(hash, &block)
       hash.transform_values do |value|
@@ -557,9 +573,10 @@ module ImmosquareYaml
     end
 
     ##============================================================##
-    ## Pour trier de façon récursive un hash par clé et en
-    ## gérant la case
-    ##============================================================##
+    ## sort_by_key Function
+    ## Purpose: Sort a hash by its keys, optionally recursively, with 
+    ## case-insensitive comparison and stripping of double quotes.
+    ## ============================================================ #
     def sort_by_key(hash, recursive = false, &block)
       block ||= proc {|a, b| a.to_s.downcase.gsub(DOUBLE_QUOTE, "") <=> b.to_s.downcase.gsub(DOUBLE_QUOTE, "") }
       hash.keys.sort(&block).each_with_object({}) do |key, seed|
@@ -568,31 +585,38 @@ module ImmosquareYaml
       end
     end
 
+    ##============================================================##
+    ## parse_xml Function
+    ## Purpose: Parse an XML file into a nested hash representation.
+    ##
+    ## This method reads through the XML file line by line and creates a 
+    ## nested hash representation based on the structure and content of the XML.
+    ##============================================================##
     def parse_xml(file_path)
       nested_hash = {}
       inblock     = nil
       last_keys   = []
     
       ##============================================================##
-      ## On pase sur chaque ligne du fichier pour en créer un hash.
-      ## On met les blocks multiline dans un array pour récupérer
-      ## toutes les valeurs et le type de formatage puis on passera
-      ## sur chacun de ces arrays par la suite pour les transformer
-      ## dans la string correspondante
+      ## We go over each line of the file to create a hash.
+      ## We put the multiline blocks in an array to recover
+      ## all the values and the formatting type then we will pass
+      ## on each of these arrays subsequently to transform them
+      ## in the corresponding string
       ##============================================================##
       File.foreach(file_path) do |line|
         ##============================================================##
-        ## Détection du niveau d'indentation
+        ## Determine the indentation level of the line.
         ##============================================================##
         indent_level = line[/\A */].size
 
         ##============================================================##
-        ## Détection des lignes blanches (dans les blocks multiline)
+        ## Check for blank lines (which can be present within multi-line blocks)
         ##============================================================##
         blank_line = line.gsub(NEWLINE, "").empty?
         
         ##============================================================##
-        ## Découpage de la ligne en clé et valeur
+        ## Split the line into key and value.
         ##============================================================##
         split   = line.strip.split(":", 2)
         key     = split[0].to_s.strip
@@ -600,13 +624,12 @@ module ImmosquareYaml
         
         
         ##============================================================##
-        ## On détermine le niveau de clé en fonction de l'indentation
+        ## Set the key level based on indentation
         ##============================================================##
         last_keys = last_keys[0, (blank_line ? inblock + INDENT_SIZE : indent_level) / INDENT_SIZE]
         
         ##============================================================##
-        ## Si on est dans un block, on récupère la dernière clé et on
-        ## ajoute la ligne au résultat
+        ## If inside a multi-line block, append the line to the current key's value
         ##============================================================##
         if !inblock.nil?
           current_key           = last_keys.last
@@ -614,25 +637,18 @@ module ImmosquareYaml
           result                = parent_keys.reduce(nested_hash) {|hash, k| hash[k] }
           result[current_key][1] << line.strip
         ##============================================================##
-        ## Si on est sur une clé de type multiline
-        ## ajoute la ligne au résultat. Nous n'avons plus le >
-        ## car il est transformé dans le initial_yml_clean en | (avec
-        ## un retour à la lgine à la fin)
+        ## Handle multi-line key declarations.
+        ## We no longer have the >
+        ## because it is transformed in the clean_xml into | 
         ##============================================================##
         elsif line.gsub("#{key}:", "").strip.start_with?("|")
-          ##============================================================##
-          ## il faut différencier dans quel type de block nous sommmes
-          ## Normalement il y a que | et |- mais si j'ai déjà vu 
-          ## aussi |2- où le 2 signifie l'intentation supplémentaire
-          ## à utiliser.
-          ##============================================================#
           inblock     = indent_level
+          block_type  = line.gsub("#{key}:", "").strip
           result      = last_keys.reduce(nested_hash) {|hash, k| hash[k] }
-          result[key] = [line.gsub("#{key}:", "").strip, []]
+          result[key] = [block_type, []]
           last_keys << key
         ##============================================================##
-        ## Sinon nous sommes dans le cas d'une ligne classique
-        ## key: value  ou key: sans value
+        ## Handle regular key-value pair declarations
         ##============================================================##
         else
           value  = split[1].to_s.strip
@@ -647,11 +663,11 @@ module ImmosquareYaml
       end
 
       ##============================================================##
-      ## On repasse sur chaque value puis on traite si c'est un has
-      ## |   avec retour à la ligne final
-      ## |4  avec retour à la ligne final et indentation de 4
-      ## |-  sans retour à la ligne final
-      ## |4- sans retour à la ligne final et indentation de 4
+      ## We go over each value then we process if it is a has
+      ## | with final newline
+      ## |4 with newline and indentation of 4
+      ## |- without newline
+      ## |4- without newline and indentation of 4
       ##============================================================##
       deep_transform_values(nested_hash) do |value|
         if value.is_a?(Array) 
@@ -667,7 +683,7 @@ module ImmosquareYaml
             text << NEWLINE unless text.end_with?(NEWLINE)
           when "-"
             text.chomp!
-          else # pour le cas "|" sans + ou -
+          else
             text << NEWLINE unless text.end_with?(NEWLINE)
           end
           text
