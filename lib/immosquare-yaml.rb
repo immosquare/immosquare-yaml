@@ -464,7 +464,7 @@ module ImmosquareYaml
       ## Re-add quotes if the key is in the list of reserved keys or is an integer
       ##============================================================##
       key = key.gsub(/\A(['“”‘’"]?)(.*)\1\z/, '\2')
-      key = "\"#{key}\"" if key.in?(RESERVED_KEYS) || is_int
+      key = "\"#{key}\"" if RESERVED_KEYS.include?(key) || is_int
       key
     end
     
@@ -528,33 +528,31 @@ module ImmosquareYaml
       ##=============================================================##
       ## Handling cases where the value must be surrounded by quotes
       ## if:
+      ## management of "" and " ". Not possible to have more spaces
+      ## because we have already removed the double spaces
+      ## else
       ## value.include?(": ")                   => key: text with: here
       ## value.include?(" #")                   => key: text with # here
       ## value.include?(NEWLINE)                => key: Line 1\nLine 2\nLine 3
       ## value.include?('\n')                   => key: Line 1"\n"Line 2"\n"Line 3
       ## value.start_with?(*YML_SPECIAL_CHARS)  => key: @text
       ## value.end_with?(":")                   => key: text:
-      ## value.in?(RESERVED_KEYS)               => key: YES
+      ## RESERVED_KEYS.include?(value)          => key: YES
       ## value.start_with?(SPACE)               => key: 'text'
       ## value.end_with?(SPACE)                 => key: text '
-      ## else:
-      ## management of "" and " ". Not possible to have more spaces
-      ## because we have already removed the double spaces
       ##=============================================================##
-      if value.present?
-        value = "\"#{value}\"" if (value.include?(": ") || 
+      if value.empty?
+        value = "\"#{value}\""
+      elsif with_quotes_verif == true
+        value = "\"#{value}\"" if value.include?(": ") || 
                                   value.include?(" #") ||
                                   value.include?(NEWLINE) || 
                                   value.include?('\n') || 
                                   value.start_with?(*YML_SPECIAL_CHARS) ||
                                   value.end_with?(":") ||
-                                  value.in?(RESERVED_KEYS) ||
+                                  RESERVED_KEYS.include?(value) ||
                                   value.start_with?(SPACE) || 
-                                  value.end_with?(SPACE)) &&
-                                  with_quotes_verif == true
-        
-      else
-        value = "\"#{value}\""
+                                  value.end_with?(SPACE)        
       end
       value
     end
