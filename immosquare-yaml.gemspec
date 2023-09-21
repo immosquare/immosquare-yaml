@@ -5,8 +5,9 @@ Gem::Specification.new do |spec|
   spec.authors       = ["IMMO SQUARE"]
   spec.email         = ["jules@immosquare.com"]
 
-  spec.summary       = "A YAML parser tailored for real estate solutions."
-  spec.description   = "IMMOSQUARE-YAML is a lightweight and efficient YAML parser designed to facilitate the handling of real estate data in YAML format, offering streamlined processes and a simplified user experience."
+  spec.summary       = "A YAML parser optimized for translation files."
+  spec.description   = "IMMOSQUARE-YAML is a specialized Ruby gem tailored primarily for parsing and dumping YML translation files, addressing challenges faced with other parsers like interpreting translation keys as booleans, multi-line strings, and more."
+
   
   spec.homepage      = "https://github.com/IMMOSQUARE/immosquare-yaml"
   
