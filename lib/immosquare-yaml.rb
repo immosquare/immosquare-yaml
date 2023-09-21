@@ -15,22 +15,36 @@ module ImmosquareYaml
       "YES", "NO", "ON", "OFF", "TRUE", "FALSE"
     ].freeze
 
-    ##============================================================##
-    ## Pour faire un clean sur un fichier yml en traitant
-    ## le fichier ligne par ligne
-    ##============================================================##
-    def clean(file_path, args = {})      
+    ##===========================================================================##
+    ## This method cleans a specified YAML file by processing it line by line.
+    ## It executes a comprehensive cleaning routine, which involves parsing the
+    ## YAML content to a hash, optionally sorting it, and then dumping it back
+    ## to a YAML format.
+    ##
+    ## Params:
+    ## +file_path+:: Path to the YAML file that needs to be cleaned.
+    ## +options+:: A hash of options where :sort controls whether the output should be sorted (default is true).
+    ##
+    ## Returns:
+    ## Boolean indicating the success (true) or failure (false) of the operation.
+    ##===========================================================================##
+    def clean(file_path, **options)
+      ##============================================================##
+      ## Default options
+      ##============================================================##
+      options = {:sort => true}.merge(options)
+      
       begin
         raise("File not found") if !File.exist?(file_path)
 
-        ##============================================================##
-        ## On fait un méga clean..
-        ## puis on le transforme en hash pour pouvoir le trier
-        ## puis on le retransforme en yml 
-        ##============================================================##
+        ##===========================================================================##
+        ## The cleaning procedure is initialized with a comprehensive clean, transforming 
+        ## the YAML content to a hash to facilitate optional sorting, before 
+        ## rewriting it to the YAML file in its cleaned and optionally sorted state.
+        ##===========================================================================##
         clean_yml(file_path)
         yaml_final = parse(file_path)
-        yaml_final = sort_by_key(yaml_final, true)
+        yaml_final = sort_by_key(yaml_final, options[:sort]) if options[:sort]
         yaml_final = dump(yaml_final)
         File.write(file_path, yaml_final)  
         true
@@ -40,63 +54,78 @@ module ImmosquareYaml
       end
     end
 
-    ##============================================================##
-    ## Pour bien parser un fait un clean préalable du fichier 
-    ## Puis on le transforme en hash pour pouvoir le trier
-    ## partir du principe que le fichier est propre.
-    ##============================================================##
-    def parse(file_path, args = {})
+    ##==========================================================================##
+    ## This method parses a specified YAML file, carrying out a preliminary 
+    ## cleaning operation to ensure a smooth parsing process. Following this, 
+    ## the cleaned file is transformed into a hash, which can optionally be sorted.
+    ## It operates under the assumption that the file is properly structured.
+    ##
+    ## Params:
+    ## +file_path+:: Path to the YAML file that needs to be parsed.
+    ## +options+:: A hash of options where :sort controls whether the output should be sorted (default is true).
+    ##
+    ## Returns:
+    ## A hash representation of the YAML file or false if an error occurs.
+    ##==========================================================================##
+    def parse(file_path, **options)
+      options = {:sort => true}.merge(options)
+      
       begin
         raise("File not found") if !File.exist?(file_path)
 
         clean_yml(file_path)
         yaml_final = parse_xml(file_path)
-        sort_by_key(yaml_final, true)
-        
+        yaml_final = sort_by_key(yaml_final, options[:sort]) if options[:sort]
+        yaml_final
       rescue StandardError => e
         puts(e.message)
         false
       end
     end
-
-    ##============================================================##
-    ## On fait un dump pour avoir un fichier yml propre
-    ##============================================================##
+    
+    ##===========================================================================##
+    ## This method performs a dump operation to obtain a well-structured 
+    ## YAML file from a hash input. It iterates through each key-value pair in the 
+    ## hash and constructs a series of lines representing the YAML file, with 
+    ## appropriate indentations and handling of various value types including 
+    ## strings with newline characters.
+    ##
+    ## Params:
+    ## +hash+:: The input hash to be converted into a YAML representation.
+    ## +lines+:: An array to hold the constructed lines (default is an empty array).
+    ## +indent+:: The current indentation level (default is 0).
+    ##
+    ## Returns:
+    ## A string representing the YAML representation of the input hash.
+    ##===========================================================================##
     def dump(hash, lines = [], indent = 0)
       hash.each do |key, value|
-        ##============================================================##
-        ## On prépare la clé avec la bonne indentation
-        ##============================================================##
+        ##===========================================================================##
+        ## Preparing the key with the proper indentation before identifying 
+        ## the type of the value to handle it appropriately in the YAML representation.
+        ##===========================================================================##
         line = "#{SPACE * indent}#{clean_key(key)}:"
         
-        ##============================================================##
-        ## Si c'est une string, il faut gérer l'affiche
-        ## si c'est un hash, on affiche la clé et on relance la méthode
-        ## de façon récursive.
-        ##============================================================##
         case value
         when nil
           lines << "#{line} null"
         when String
-          ##============================================================##
-          ## Si il y a des sauts de lignes on gère avec | et |. on 
-          ## n'affiche pas directement les \n dans le yml.
-          ##============================================================##
           if value.include?(NEWLINE) || value.include?('\n')
-            ##============================================================##
-            ## On affiche la ligne avec la key l'indentation si nécéssaire
-            ## et le  - si nécéssaire (le + on ne l'affiche pas car c'est
-            ## le comportement par défaut)
-            ##============================================================##
+            ##=============================================================##
+            ## We display the line with the key 
+            ## then the indentation if necessary
+            ## then - if necessary (the + is not displayed because it is
+            ## the default behavior)
+            ##=============================================================##
             line        += "#{SPACE}|"
             indent_level = value[/\A */].size
             line        += (indent_level + INDENT_SIZE).to_s if indent_level > 0
             line        += "-" if !value.end_with?(NEWLINE)
             lines << line
 
-            ##============================================================##
-            ## On parse sur les 2 types de saut de ligne
-            ##============================================================##
+            ##=============================================================##
+            ## We parse on the 2 types of line breaks
+            ##=============================================================##
             value.split(/\\n|\n/).each do |subline|
               lines << "#{SPACE * (indent + INDENT_SIZE)}#{subline}"
             end
@@ -110,10 +139,10 @@ module ImmosquareYaml
         end
       end
 
-      ##============================================================##
-      ## On fini le fichier avec un retour à la ligne et on supprime
-      ## les espaces sur les lignes "vides"
-      ##============================================================##
+      ##===========================================================================##
+      ## Finalizing the construction by adding a newline at the end and 
+      ## removing whitespace from empty lines.
+      ##===========================================================================##
       lines += [""]
       lines = lines.map {|l| l.strip.empty? ? "" : l }
       lines.join("\n")
