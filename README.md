@@ -17,6 +17,94 @@ Here are some standout features and advantages of this gem:
 
 Whether you're managing translations, real estate data, or any other form of YML data, ImmosquareYaml offers a refined, efficient, and user-friendly experience. Dive in and simplify your YAML operations!
 
+## Quick Example
+
+Let's assume you have a YML file with some reserved keys, multiline texts, and emojis:
+
+````YML
+en:
+  demo: "demo" 
+  yes: "This is not a boolean"
+  no: "Neither is this"
+  emoji: "Here's an emoji: \U0001F600"
+  demo2:
+    demo2-1:
+      demo2-1-1: "hello"
+      demo2-1-2:
+      demo2-1-3: "John Doe"
+  demo3:
+    1: "task #1"
+    2: "task #2"
+    3: "task #2"
+  some_special_characters:
+    special1: "-hyphen"
+    special2: "*asterisk"
+    special3: "%percent"
+    special4: ",comma"
+    special5: "!exclamation"
+    special6: "?question_mark"
+    special7: "&ampersand"
+    special8: "#hash"
+    special9: "@at"
+  description1: "This is the first line of test #1 \U0001F600.\nThis is the second line of test#1.\nThis is the third line of test.#1"
+  description2: |
+    This is the first line of test #2 \U0001F600.
+    This is the second line of test #2.
+    This is the third line of test #2.
+  description3: |4-
+      This is the first line of test #3 \U0001F600.
+      This is the second line of test #3.
+      This is the third line of test #3.
+  description4: > 
+    This is the first line of test #4 \U0001F600.
+    This is the second line of test #4.
+    This is the third line of test #4.  
+````
+
+After processing this YML file with ImmosquareYaml.clean, reserved keys such as yes and no are preserved, emojis are correctly interpreted, unnecessary quotes are removed, and multiline texts are formatted consistently.
+
+````YML
+en:
+  demo: demo
+  demo2:
+    demo2-1:
+      demo2-1-1: hello
+      demo2-1-2: null
+      demo2-1-3: John Doe
+  demo3:
+    "1": "task #1"
+    "2": "task #2"
+    "3": "task #2"
+  description1: |-
+    This is the first line of test #1 😀.
+    This is the second line of test#1.
+    This is the third line of test.#1
+  description2: |
+    This is the first line of test #2 😀.
+    This is the second line of test #2.
+    This is the third line of test #2.
+  description3: |4-
+      This is the first line of test #3 😀.
+      This is the second line of test #3.
+      This is the third line of test #3.
+  description4: |
+    This is the first line of test #4 😀. This is the second line of test #4. This is the third line of test #4.
+  emoji: "Here's an emoji: 😀"
+  "no": Neither is this
+  some_special_characters:
+    special1: "-hyphen"
+    special2: "*asterisk"
+    special3: "%percent"
+    special4: ",comma"
+    special5: "!exclamation"
+    special6: "?question_mark"
+    special7: "&ampersand"
+    special8: "#hash"
+    special9: "@at"
+  "yes": This is not a boolean
+````
+
+
 
 ## Installation
 
