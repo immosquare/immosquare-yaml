@@ -82,14 +82,18 @@ module ImmosquareYaml
         ## clean, parse & Sort
         ##===========================================================================##
         clean_yml(file_path)
-        yaml_final = parse_xml(file_path)
-        yaml_final = sort_by_key(yaml_final, options[:sort]) if options[:sort]
+        parsed_xml = parse_xml(file_path)
+        parsed_xml = sort_by_key(parsed_xml, options[:sort]) if options[:sort]
 
         ##===========================================================================##
         ## Restore original content
         ##===========================================================================##
         File.write(file_path, original_content)
-        yaml_final
+
+        ##===========================================================================##
+        ## Return the parsed YAML file
+        ##===========================================================================##
+        parsed_xml
       rescue StandardError => e
         puts(e.message)
         false
