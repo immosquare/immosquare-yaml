@@ -163,6 +163,12 @@ module ImmosquareYaml
             line        += "-" if !value.end_with?(NEWLINE)
             lines << line
 
+            ##============================================================##
+            ## Remove quotes surrounding the value if they are present.
+            ## They are not necessary in this case after | or |-
+            ##============================================================##
+            value = value[1..-2] if (value.start_with?(DOUBLE_QUOTE) && value.end_with?(DOUBLE_QUOTE)) || (value.start_with?(SIMPLE_QUOTE) && value.end_with?(SIMPLE_QUOTE))
+
             ##=============================================================##
             ## We parse on the 2 types of line breaks
             ##=============================================================##
