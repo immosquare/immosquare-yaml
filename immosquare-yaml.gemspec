@@ -1,4 +1,5 @@
 Gem::Specification.new do |spec|
+  spec.license       = "MIT"
   spec.name          = "immosquare-yaml"
   spec.version       = "0.1.0"
   spec.authors       = ["IMMO SQUARE"]
