@@ -173,7 +173,7 @@ module ImmosquareYaml
         ## Manage blank values
         ##============================================================##
         blank_values  = ["", " ", "\"\"", "\" \""]
-        data          = array.map do |key, from, to|
+        array         = array.map do |key, from, to|
           [key, from, blank_values.include?(from) ? from : to] 
         end 
 
@@ -187,7 +187,7 @@ module ImmosquareYaml
         ## ==
         ## Remove the translations that have already been made
         ##============================================================##
-        data_open_ai = data.clone
+        data_open_ai = array.clone
         data_open_ai = data_open_ai.map.with_index {|(_k, from, to), index| [index, from, to] }
         data_open_ai = data_open_ai.select {|_index, _from, to| to.nil? }
         data_open_ai = data_open_ai.map {|index, from, _to| [index, from] }
@@ -286,6 +286,9 @@ module ImmosquareYaml
           array[index][2] = translation
         end
 
+        ##============================================================##
+        ## We return the modified array
+        ##============================================================##
         array
       end
 
