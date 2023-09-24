@@ -8,19 +8,7 @@ module ImmosquareYaml
   
   class << self
 
-    INDENT_SIZE         = 2
-    SPACE               = " ".freeze
-    NEWLINE             = "\n".freeze
-    SIMPLE_QUOTE        = "'".freeze
-    DOUBLE_QUOTE        = '"'.freeze
-    DOUBLE_SIMPLE_QUOTE = "''".freeze
-    WEIRD_QUOTES_REGEX  = /‘|’|“|”|‛|‚|„|‟|#{Regexp.quote(DOUBLE_SIMPLE_QUOTE)}/.freeze
-    YML_SPECIAL_CHARS   = ["-", "`", "{", "}", "|", "[", "]", ">", ":", "\"", "'", "*", "=", "%", ",", "!", "?", "&", "#", "@"].freeze
-    RESERVED_KEYS       = [
-      "yes", "no", "on", "off", "true", "false",
-      "Yes", "No", "On", "Off", "True", "False",
-      "YES", "NO", "ON", "OFF", "TRUE", "FALSE"
-    ].freeze
+    
 
     
     ##===========================================================================##
@@ -210,8 +198,8 @@ module ImmosquareYaml
       ## Finalizing the construction by adding a newline at the end and 
       ## removing whitespace from empty lines.
       ##===========================================================================##
-      lines += [""]
-      lines = lines.map {|l| l.strip.empty? ? "" : l }
+      lines += [NOTHING]
+      lines = lines.map {|l| l.strip.empty? ? NOTHING : l }
       lines.join("\n")
     end
 
@@ -301,7 +289,7 @@ module ImmosquareYaml
         ## Detecting blank lines to specially handle the last line within a block; 
         ## if we are inside a block or it's the last line, we avoid skipping
         ##===================================================================================#
-        blank_line = current_line.gsub(NEWLINE, "").empty?
+        blank_line = current_line.gsub(NEWLINE, NOTHING).empty?
         next if !(last_line || inblock || !blank_line)
 
         ##============================================================##
@@ -412,14 +400,14 @@ module ImmosquareYaml
         ## If the line is commented out, we keep and we remove newlines
         ##============================================================##
         if current_line.lstrip.start_with?("#")
-          lines << current_line.gsub(NEWLINE, "")
+          lines << current_line.gsub(NEWLINE, NOTHING)
         ##================================================= ============##
         ## If is in a block (multiline > | or |-), we clean
         ## the line because it can start with spaces tabs etc.
         ## and put it with the block indenter
         ##================================================= ============##
         elsif inblock == true
-          current_line = current_line.gsub(NEWLINE, "").strip
+          current_line = current_line.gsub(NEWLINE, NOTHING).strip
           lines << "#{SPACE * (inblock_indent + INDENT_SIZE)}#{current_line}"
         ##================================================= ============##
         ## if the line ends with a multi-line character and we have a key.
@@ -434,7 +422,7 @@ module ImmosquareYaml
         ## $      : Matches the end of the line/string.
         ##================================================= ============##
         elsif current_line.rstrip.match?(/\S+: [>|](\d*)[-+]?$/)
-          lines << current_line.gsub(NEWLINE, "")
+          lines << current_line.gsub(NEWLINE, NOTHING)
           inblock_indent = indent_level
           inblock        = true
         ##============================================================##
@@ -448,7 +436,7 @@ module ImmosquareYaml
         ## my key: line1 line2 line3
         ##============================================================##
         elsif split.size < 2
-          lines[-1] = (lines[-1] + " #{current_line.lstrip}").gsub(NEWLINE, "")
+          lines[-1] = (lines[-1] + " #{current_line.lstrip}").gsub(NEWLINE, NOTHING)
         ##============================================================##
         ## Otherwise we are in the case of a classic line
         ## key: value or key: without value
@@ -491,8 +479,8 @@ module ImmosquareYaml
       ## spaces on "empty" lines + double spaces
       ## with the same technique as above
       ##============================================================##
-      lines += [""]
-      lines = lines.map {|l| (l.strip.empty? ? "" : l).to_s.gsub(/(?<=\S)\s+/, SPACE) }
+      lines += [NOTHING]
+      lines = lines.map {|l| (l.strip.empty? ? NOTHING : l).to_s.gsub(/(?<=\S)\s+/, SPACE) }
       File.write(file_path, lines.join(NEWLINE))
     end    
 
@@ -564,7 +552,7 @@ module ImmosquareYaml
       ## \v: corresponds to a vertical tab
       ## We keep the \n
       ##============================================================##
-      value = value.gsub(/[\t\r\f\v]+/, "")
+      value = value.gsub(/[\t\r\f\v]+/, NOTHING)
       
       ##============================================================##
       ## Replace multiple spaces with a single space.
@@ -652,7 +640,7 @@ module ImmosquareYaml
         ##============================================================##
         ## Check for blank lines (which can be present within multi-line blocks)
         ##============================================================##
-        blank_line = line.gsub(NEWLINE, "").empty?
+        blank_line = line.gsub(NEWLINE, NOTHING).empty?
         
         ##============================================================##
         ## Split the line into key and value.
@@ -680,9 +668,9 @@ module ImmosquareYaml
         ## We no longer have the >
         ## because it is transformed in the clean_xml into | 
         ##============================================================##
-        elsif line.gsub("#{key}:", "").strip.start_with?("|")
+        elsif line.gsub("#{key}:", NOTHING).strip.start_with?("|")
           inblock     = indent_level
-          block_type  = line.gsub("#{key}:", "").strip
+          block_type  = line.gsub("#{key}:", NOTHING).strip
           result      = last_keys.reduce(nested_hash) {|hash, k| hash[k] }
           result[key] = [block_type, []]
           last_keys << key

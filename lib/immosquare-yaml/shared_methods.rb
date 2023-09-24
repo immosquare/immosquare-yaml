@@ -1,5 +1,20 @@
 module ImmosquareYaml
   module SharedMethods
+    INDENT_SIZE         = 2
+    NOTHING             = "".freeze
+    SPACE               = " ".freeze
+    NEWLINE             = "\n".freeze
+    SIMPLE_QUOTE        = "'".freeze
+    DOUBLE_QUOTE        = '"'.freeze
+    DOUBLE_SIMPLE_QUOTE = "''".freeze
+    WEIRD_QUOTES_REGEX  = /‘|’|“|”|‛|‚|„|‟|#{Regexp.quote(DOUBLE_SIMPLE_QUOTE)}/.freeze
+    YML_SPECIAL_CHARS   = ["-", "`", "{", "}", "|", "[", "]", ">", ":", "\"", "'", "*", "=", "%", ",", "!", "?", "&", "#", "@"].freeze
+    RESERVED_KEYS       = [
+      "yes", "no", "on", "off", "true", "false",
+      "Yes", "No", "On", "Off", "True", "False",
+      "YES", "NO", "ON", "OFF", "TRUE", "FALSE"
+    ].freeze
+
     
     ##============================================================##
     ## Deep transform values resursively
