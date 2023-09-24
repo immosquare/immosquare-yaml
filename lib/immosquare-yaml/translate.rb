@@ -90,8 +90,6 @@ module ImmosquareYaml
           ##============================================================##
           translated_array = translate_with_open_ai(array_to, locale_from, locale_to)
 
-          puts(translated_array.inspect)
-
           ##============================================================##
           ## Then we have to reformat the output yml file
           ##============================================================##
@@ -99,9 +97,10 @@ module ImmosquareYaml
           final_hash  = translatable_hash(final_array)
 
           ##============================================================##
-          ## We write the output file
+          ## We write the output file and clean it
           ##============================================================##
           File.write(translated_file_path, ImmosquareYaml.dump(final_hash))
+          ImmosquareYaml.clean(translated_file_path)
         rescue StandardError => e
           puts(e.message)
           puts(e.backtrace)
@@ -172,7 +171,7 @@ module ImmosquareYaml
         ##============================================================##
         ## Manage blank values
         ##============================================================##
-        blank_values  = ["", " ", "\"\"", "\" \""]
+        blank_values  = [NOTHING, SPACE, "\"\"", "\"#{SPACE}\""]
         array         = array.map do |key, from, to|
           [key, from, blank_values.include?(from) ? from : to] 
         end 
@@ -189,16 +188,25 @@ module ImmosquareYaml
         ##============================================================##
         data_open_ai = array.clone
         data_open_ai = data_open_ai.map.with_index {|(_k, from, to), index| [index, from, to] }
-        data_open_ai = data_open_ai.select {|_index, _from, to| to.nil? }
-        data_open_ai = data_open_ai.map {|index, from, _to| [index, from] }
+        data_open_ai = data_open_ai.select {|_index, from, to| !from.nil? && to.nil? }
 
-        return data if data_open_ai.empty?
+        ##============================================================##
+        ## Remove quotes surrounding the value if they are present.
+        ## and remove to to avoid error in translation
+        ##============================================================##
+        data_open_ai = data_open_ai.map do |index, from, _to| 
+          from = from.to_s
+          from = from[1..-2] if (from.start_with?(DOUBLE_QUOTE) && from.end_with?(DOUBLE_QUOTE)) || (from.start_with?(SIMPLE_QUOTE) && from.end_with?(SIMPLE_QUOTE))
+          [index, from] 
+        end
+
+        return array if data_open_ai.empty?
         
         ##============================================================##
         ## Call OpenAI API
         ##============================================================##
         index         = 0
-        group_size    = 3
+        group_size    = 300
         from_iso      = ISO_639.find_by_code(from).english_name.split(";").first
         to_iso        = ISO_639.find_by_code(to).english_name.split(";").first
         ai_resuslts   = []
@@ -227,8 +235,8 @@ module ImmosquareYaml
         while index < data_open_ai.size
           data_group = data_open_ai[index, group_size]
 
+
           begin
-            puts("=" * 30)
             puts("we call OPENAI Api #{" for #{data_group.size} fields" if data_open_ai.size > group_size}")
             prompt = "#{prompt_init}:\n\n#{data_group.inspect}\n\n"
             body   = {
@@ -289,10 +297,12 @@ module ImmosquareYaml
         ##============================================================##
         ## We return the modified array
         ##============================================================##
-        array
+        array.map.with_index do |(k, from, to), index| 
+          from = from.to_s
+          to   = "#{DOUBLE_QUOTE}#{to}#{DOUBLE_QUOTE}" if ai_resuslts.find {|i, _t| i == index } && ((from.start_with?(DOUBLE_QUOTE) && from.end_with?(DOUBLE_QUOTE)) || (from.start_with?(SIMPLE_QUOTE) && from.end_with?(SIMPLE_QUOTE)))
+          [k, from, to] 
+        end
       end
-
-  
 
 
     end
