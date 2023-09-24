@@ -12,13 +12,11 @@ Gem::Specification.new do |spec|
   spec.homepage      = "https://github.com/IMMOSQUARE/immosquare-yaml"
   
   spec.files         = Dir["lib/**/*"]
-  spec.bindir        = "exe"
-  spec.executables   = []
   spec.require_paths = ["lib"]
 
-  spec.required_ruby_version = Gem::Requirement.new(">= 2.6.0")
+  spec.required_ruby_version = Gem::Requirement.new(">= 2.7.2")
   
-  spec.add_dependency("iso-639", "> 0.2.5")
+  spec.add_dependency("iso-639")
 
 
 end

@@ -1,3 +1,6 @@
+require_relative "immosquare-yaml/configuration"
+require_relative "immosquare-yaml/translate"
+
 module ImmosquareYaml
   class << self
 
@@ -14,6 +17,20 @@ module ImmosquareYaml
       "Yes", "No", "On", "Off", "True", "False",
       "YES", "NO", "ON", "OFF", "TRUE", "FALSE"
     ].freeze
+
+    
+    ##===========================================================================##
+    ## Gem configuration
+    ##===========================================================================##
+    attr_writer :configuration
+
+    def configuration
+      @configuration ||= Configuration.new
+    end
+
+    def config
+      yield(configuration)
+    end
 
     ##===========================================================================##
     ## This method cleans a specified YAML file by processing it line by line.

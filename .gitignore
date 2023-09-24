@@ -1,2 +1,4 @@
 *.gem
+Gemfile.lock
 /spec/output
+config_dev.yml
