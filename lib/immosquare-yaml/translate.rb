@@ -1,3 +1,7 @@
+require "iso-639"
+require "httparty"
+
+
 module ImmosquareYaml
   
   module Translate
@@ -19,8 +23,7 @@ module ImmosquareYaml
           ##=============================================================##
           ## Load config keys from config_dev.yml
           ##=============================================================##
-          openai_api_key = ImmosquareYaml.configuration.openai_api_key
-          raise("Error: openai_api_key not found in config_dev.yml") if openai_api_key.nil? 
+          raise("Error: openai_api_key not found in config_dev.yml") if ImmosquareYaml.configuration.openai_api_key.nil? 
           raise("Error: File #{file_path} not found")                if !File.exist?(file_path)
           raise("Error: locale is not a locale")                     if !locale_to.is_a?(String) || locale_to.size != 2
   
@@ -86,6 +89,8 @@ module ImmosquareYaml
           ## using other translation APIs in the future.
           ##============================================================##
           translated_array = translate_with_open_ai(array_to, locale_from, locale_to)
+
+          puts(translated_array.inspect)
 
           ##============================================================##
           ## Then we have to reformat the output yml file
@@ -156,10 +161,135 @@ module ImmosquareYaml
 
       ##============================================================##
       ## Translate with OpenAI
+      ## 
+      ## [
+      ##  ["en.mlsconnect.contact_us", "Nous contacter", "Contact us"], 
+      ##  ["en.mlsconnect.description", "Description", nil],
+      ##  ...
+      ## ]
       ##============================================================##
-      def translate_with_open_ai(array, locale_from, locale_to)
-        array.map {|key, from, to| [key, from, "#{to} TODO"] }
+      def translate_with_open_ai(array, from, to)
+        ##============================================================##
+        ## Manage blank values
+        ##============================================================##
+        blank_values  = ["", " ", "\"\"", "\" \""]
+        data          = array.map do |key, from, to|
+          [key, from, blank_values.include?(from) ? from : to] 
+        end 
+
+
+        ##============================================================##
+        ## we want to send as little data as possible to openAI because
+        ## we pay for the volume of data sent. So we're going to send. We put
+        ## a number rather than a string for the translations to be made.
+        ## We take the 16k model to have 16,000k tokens per request
+        ## (around 16,000/4 = 4000 characters).
+        ## ==
+        ## Remove the translations that have already been made
+        ##============================================================##
+        data_open_ai = data.clone
+        data_open_ai = data_open_ai.map.with_index {|(_k, from, to), index| [index, from, to] }
+        data_open_ai = data_open_ai.select {|_index, _from, to| to.nil? }
+        data_open_ai = data_open_ai.map {|index, from, _to| [index, from] }
+
+        return data if data_open_ai.empty?
+        
+        ##============================================================##
+        ## Call OpenAI API
+        ##============================================================##
+        index         = 0
+        group_size    = 3
+        from_iso      = ISO_639.find_by_code(from).english_name.split(";").first
+        to_iso        = ISO_639.find_by_code(to).english_name.split(";").first
+        ai_resuslts   = []
+        prompt_system = "You are a translation tool from #{from_iso} to #{to_iso}\n" \
+                        "The input is an array of pairs, where each pair contains an index and a string to translate, formatted as [index, string_to_translate]\n" \
+                        "Your task is to create an output array where each element is a pair consisting of the index and the translated string, formatted as [index, 'string_translated']\n" \
+                        "\nRules to respect:\n" \
+                        "- Do not escape apostrophes in translated strings; leave them as they are.\n" \
+                        "- Special characters, except apostrophes, that need to be escaped in translated strings should be escaped using a single backslash (\\), not double (\\\\).\n" \
+                        "- If a string cannot be translated use 'nil' as the translation value witouth simple quote '', just nil\n" \
+                        "- If you dont know the correct translatation but the original word seems to make sense in the original language use it for the translated field otherwise use the nil strategy of the preceding point\n" \
+                        "- Use only doubles quotes (\") to enclose translated strings and avoid using single quotes (').\n" \
+                        "- Your output must ONLY be an array with the same number of pairs as the input, without any additional text or explanation.\n" \
+                        "- You need to check that the globle array is correctly closed at the end of the response. (the response must therefore end with ]] to to be consistent)"
+        prompt_init   = "Please proceed with translating the following array:"
+        headers       = {
+          "Content-Type"  => "application/json",
+          "Authorization" => "Bearer #{ImmosquareYaml.configuration.openai_api_key}"
+        }
+        
+        
+        ##============================================================##
+        ## Loop
+        ##============================================================##
+        puts("fields to translate : #{data_open_ai.size}#{" by group of #{group_size}" if data_open_ai.size > group_size}")
+        while index < data_open_ai.size
+          data_group = data_open_ai[index, group_size]
+
+          begin
+            puts("=" * 30)
+            puts("we call OPENAI Api #{" for #{data_group.size} fields" if data_open_ai.size > group_size}")
+            prompt = "#{prompt_init}:\n\n#{data_group.inspect}\n\n"
+            body   = {
+              :model       => "gpt-3.5-turbo-16k",
+              :messages    => [
+                {:role => "system", :content => prompt_system},
+                {:role => "user",   :content => prompt}
+              ],
+              :temperature => 0.0
+            }
+            t0   = Time.now
+            call = HTTParty.post("https://api.openai.com/v1/chat/completions", :body => body.to_json, :headers => headers, :timeout => 240)
+            
+            puts("responded in #{(Time.now - t0).round(2)} seconds")
+            raise(call["error"]["message"]) if call.code != 200 
+            
+            ##============================================================##
+            ## We check that the result is complete
+            ##============================================================##
+            response  = JSON.parse(call.body)
+            choice    = response["choices"][0]
+            raise("Result is not complete") if choice["finish_reason"] != "stop"
+
+            ##============================================================##
+            ## We calculate the estimate price of the call
+            ##============================================================##
+            price = ((response["usage"]["prompt_tokens"] / 1000.0) * 0.003) + ((response["usage"]["completion_tokens"] / 1000.0) * 0.004)
+            puts("Estimate price => #{price.round(3)} USD")
+
+            ##============================================================##
+            ## We check that the result is an array
+            ##============================================================##
+            content = eval(choice["message"]["content"])
+            raise("Is not an array") if !content.is_a?(Array)
+
+            ##============================================================##
+            ## We save the result
+            ##============================================================##
+            content.each do |index, translation|
+              ai_resuslts << [index, translation]
+            end
+          rescue StandardError => e
+            puts("error OPEN AI API => #{e.message}")
+            puts(e.message)
+            puts(e.backtrace)
+          end
+          index += group_size
+        end
+
+
+        ##============================================================##
+        ## We put the translations in the original array
+        ##============================================================##
+        ai_resuslts.each do |index, translation|
+          array[index][2] = translation
+        end
+
+        array
       end
+
+  
 
 
     end
