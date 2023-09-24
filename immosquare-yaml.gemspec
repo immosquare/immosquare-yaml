@@ -1,7 +1,10 @@
+require_relative "lib/immosquare-yaml/version"
+
+
 Gem::Specification.new do |spec|
   spec.license       = "MIT"
   spec.name          = "immosquare-yaml"
-  spec.version       = ImmosquareYaml::VERSION
+  spec.version       = ImmosquareYaml::VERSION.dup
   spec.authors       = ["IMMO SQUARE"]
   spec.email         = ["jules@immosquare.com"]
 
