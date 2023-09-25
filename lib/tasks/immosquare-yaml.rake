@@ -15,10 +15,10 @@ namespace :immosquare_yaml do
       raise("Please provide a valid boolean for reset_translations") if ![true, false].include?(reset_translations)
       
       locales = I18n.available_locales.map(&:to_s).reject {|l| l == source_locale }
-      puts("Translating #{source_locale} to #{locales.join(", ")} with reset_translations=#{reset_translations}")
+      puts("Translating from #{source_locale} to #{locales.join(", ")} with reset_translations=#{reset_translations}")
       Dir.glob("#{Rails.root}/config/locales/**/*#{source_locale}.yml").each do |file|
         locales.each do |locale|
-          ImmosquareYaml::Translate.translate(file, locale, reset_translations) 
+          ImmosquareYaml::Translate.translate(file, locale, :reset_translations => reset_translations) 
         end
       end
     rescue StandardError => e
