@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+## [0.1.6] - 2023-09-25
+- fix bug with RESET_TRANSLATIONS flag
+
 ## [0.1.5] - 2023-09-25
 - Add RESET_TRANSLATIONS flag to immosquare_yaml:translate task
 

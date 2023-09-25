@@ -9,6 +9,8 @@ namespace :immosquare_yaml do
     begin
       source_locale      = ENV.fetch("SOURCE_LOCALE", nil) || "fr"
       reset_translations = ENV.fetch("RESET_TRANSLATIONS", nil) || false
+      reset_translations = reset_translations == "true"
+      
       raise("Please provide a valid locale")                         if !I18n.available_locales.map(&:to_s).include?(source_locale)
       raise("Please provide a valid boolean for reset_translations") if ![true, false].include?(reset_translations)
       
