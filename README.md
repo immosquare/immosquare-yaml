@@ -4,7 +4,7 @@ ImmosquareYaml is a dedicated Ruby gem crafted to parse, dump, manage, and trans
 
 In the past, there have been significant challenges in using existing YAML parsers like [Psych](https://github.com/ruby/psych) and [YAML](https://github.com/ruby/yaml) (which internally utilizes Psych). Issues arose, such as interpreting translation keys like `yes:`, `no:`, and others as booleans. Additionally, they showed shortcomings in effectively handling multiline texts, often faltering with notations like `key: |`, `key: |-`, `key: >`, `key: |5+`, `key: |3-`, and more.
 
-### Why Choose ImmosquareYaml?
+## Why Choose ImmosquareYaml?
 Here are some standout features and advantages of this gem:
 
 - **Reserved Key Management**: Handles keys with "reserved" words seamlessly.
@@ -16,6 +16,8 @@ Here are some standout features and advantages of this gem:
 - **Optimized for Translations**: Precisely tailored for handling translation files, addressing challenges faced with other parsers.
 
 Whether you're managing translations, real estate data, or any other form of YML data, ImmosquareYaml offers a refined, efficient, and user-friendly experience. Dive in and simplify your YAML operations!
+
+---
 
 ## Quick Example
 
@@ -76,7 +78,11 @@ en:
     This is the third line of test #4.  
 ````
 
-After processing this YML file with `ImmosquareYaml.clean(path_to_file`, reserved keys such as yes and no are preserved, emojis are correctly interpreted, unnecessary quotes are removed, and multiline texts are formatted consistently.
+After processing this YML file with reserved keys such as yes and no are preserved, emojis are correctly interpreted, unnecessary quotes are removed, and multiline texts are formatted consistently.
+
+```ruby
+ImmosquareYaml.clean(path_to_file)
+```
 
 ````YML
 en:
@@ -124,7 +130,11 @@ en:
   "yes": This is not a boolean
 ````
 
-and you can have the automatically translated version avec la méthode `ImmosquareYaml::Translate.translate(path_to_file, "fr")`
+and you can have the automatically translated version avec la méthode `
+
+```ruby
+ImmosquareYaml::Translate.translate(path_to_file, "fr")
+```
 
 ```YML
 fr:
@@ -172,6 +182,7 @@ fr:
   "yes": Ce n'est pas un booléen
 ```
 
+---
 
 ## Installation
 
@@ -193,6 +204,8 @@ Or install it yourself as:
 gem install immosquare-yaml
 ```
 
+---
+
 ## Usage
 
 ### Parsing YAML Files
@@ -203,11 +216,14 @@ To parse a YAML file and transform it into a Ruby hash, use the `ImmosquareYaml.
 hash = ImmosquareYaml.parse('path/to/your/file.yml')
 ```
 
+
 By default, the resulting hash will be sorted. If you do not wish to sort the hash, pass the `:sort => false` option:
 
 ```ruby
 hash = ImmosquareYaml.parse('path/to/your/file.yml', :sort => false)
 ```
+
+---
 
 ### Cleaning YAML Files
 
@@ -217,11 +233,13 @@ To clean a YAML file, use the `ImmosquareYaml.clean` method:
 ImmosquareYaml.clean('path/to/your/file.yml')
 ```
 
-As with the `parse` method, the file will be sorted by default after cleaning. If you do not wish to sort the file, pass the `:sort => false` option:
+As with the parse method, the file will be sorted by default after cleaning. If you do not wish to sort the file, pass the `:sort => false` option:
 
 ```ruby
 ImmosquareYaml.clean('path/to/your/file.yml', :sort => false)
 ```
+
+---
 
 ### Creating YAML Files
 
@@ -232,47 +250,66 @@ hash = { 'a' => 1, 'b' => 2 }
 ImmosquareYaml.dump(hash, 'path/to/your/new/file.yml')
 ```
 
+---
 
 ### Translate YAML Files
 
 Leveraging the growing prowess of AI tools, ImmosquareYaml has branched out to encompass translation features. The translation module utilizes OpenAI's API to translate YML files.
 
-#### Configuration
+---
 
-Before using the translation feature, ensure you've set up your OpenAI API key and have chosen the OpenAI model you'd like to use. We have to add a initilizer in your Rails App
+### Configuration
+
+Before using the translation feature, ensure you've set up your OpenAI API key and have chosen the OpenAI model you'd like to use. We have to add a initilizer in your Rails App.
+
 
 ```ruby
+## config/initializers/immosquare-yaml.rb
+
+## =======================================
 ## Available models:
 ## https://platform.openai.com/docs/models/
 ## gpt-3.5-turbo
 ## gpt-3.5-turbo-16k
 ## gpt-4
 ## gpt-4-32k
+## =======================================
 ImmosquareYaml.config do |config|
   config.openai_api_key = ENV.fetch("openai_api_key", nil)
   config.openai_model   = "gpt-4"
 end
 ```
 
+---
+
 ### Translation
 
-The primary method provided by the translation module is `translate`, which takes the file path, target locale, and other options to translate the YML file.
+The primary method provided by the translation module is `translate`, which takes the file path, target locale.
 
 ```ruby
-ImmosquareYaml::Translate.translate('path/to/your/file.yml', 'fr')
+ImmosquareYaml::Translate.translate("path/to/your/file.yml", "fr")
 ```
+
+If you wish reset translations fields in your target file, pass the  ``:reset_translations => true` option
+
+```ruby
+ImmosquareYaml::Translate.translate("path/to/your/file.yml", "fr", :reset_translations => true)
+```
+
+---
+
 
 ### Rake Tasks
 
 Two rake tasks have been included to ease YML file management in a Rails application:
 
-1. **Cleaning**: Cleans translation files within your Rails application. To use this task:
+1. **Cleaning**: Cleans all translation files within your Rails application. To use this task:
 
 ```bash
 rake immosquare_yaml:clean
 ```
 
-2. **Translation**: Translates translation files within your Rails application. To use this task:
+2. **Translation**: Translates all translation files within your Rails application. To use this task:
 
 ```bash
 rake immosquare_yaml:translate SOURCE_LOCALE=fr
