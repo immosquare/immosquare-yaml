@@ -312,7 +312,11 @@ module ImmosquareYaml
         ## We put the translations in the original array
         ##============================================================##
         ai_resuslts.each do |index, translation|
-          array[index][2] = translation
+          begin
+            array[index.to_i][2] = translation  
+          rescue StandardError => e
+            puts(e.message)
+          end
         end
 
         ##============================================================##
