@@ -165,6 +165,54 @@ hash = { 'a' => 1, 'b' => 2 }
 ImmosquareYaml.dump(hash, 'path/to/your/new/file.yml')
 ```
 
+
+### Translate YAML Files
+
+Leveraging the growing prowess of AI tools, ImmosquareYaml has branched out to encompass translation features. The translation module utilizes OpenAI's API to translate YML files.
+
+#### Configuration
+
+Before using the translation feature, ensure you've set up your OpenAI API key and have chosen the OpenAI model you'd like to use. We have to add a initilizer in your Rails App
+
+```ruby
+## Available models:
+## https://platform.openai.com/docs/models/
+## gpt-3.5-turbo
+## gpt-3.5-turbo-16k
+## gpt-4
+## gpt-4-32k
+ImmosquareYaml.config do |config|
+  config.openai_api_key = ENV.fetch("openai_api_key", nil)
+  config.openai_model   = "gpt-4"
+end
+```
+
+### Translation
+
+The primary method provided by the translation module is `translate`, which takes the file path, target locale, and other options to translate the YML file.
+
+```ruby
+ImmosquareYaml::Translate.translate('path/to/your/file.yml', 'fr')
+```
+
+### Rake Tasks
+
+Two rake tasks have been included to ease YML file management in a Rails application:
+
+1. **Translation**: Translates translation files within your Rails application. To use this task:
+
+```bash
+rake immosquare_yaml:translate SOURCE_LOCALE=fr
+```
+
+2. **Cleaning**: Cleans translation files within your Rails application. To use this task:
+
+```bash
+rake immosquare_yaml:clean
+```
+
+
+
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request on our [GitHub repository](https://github.com/IMMOSQUARE/immosquare-yaml).

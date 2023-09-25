@@ -2,12 +2,12 @@ namespace :immosquare_yaml do
   
   ##============================================================##
   ## Function to translate translation files in rails app
-  ## rake immosquare_yaml:translate LOCALE=fr
+  ## rake immosquare_yaml:translate SOURCE_LOCALE=fr
   ##============================================================##
   desc "Translate translation files in rails app"
   task :translate => :environment do
     begin
-      source_locale = ENV.fetch("LOCALE", nil) || "fr"
+      source_locale = ENV.fetch("SOURCE_LOCALE", nil) || "fr"
       raise("Please provide a valid locale") if !I18n.available_locales.map(&:to_s).include?(source_locale)
 
       locales = I18n.available_locales.map(&:to_s).reject {|l| l == source_locale }
