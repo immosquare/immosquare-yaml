@@ -309,9 +309,14 @@ rake immosquare_yaml:clean
 ```
 
 2. **Translation**: Translates all translation files within your Rails application:
+Default SOURCE_LOCAL is frencb(fr) & default RESET_TRANSLATIONS is false
 
 ```bash
-rake immosquare_yaml:translate SOURCE_LOCALE=fr
+rake immosquare_yaml:translate
+```
+
+```bash
+rake immosquare_yaml:translate SOURCE_LOCALE=en RESET_TRANSLATIONS=true
 ```
 
 

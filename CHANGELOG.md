@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+## [0.1.5] - 2023-09-25
+- Add RESET_TRANSLATIONS flag to immosquare_yaml:translate task
+
 ## [0.1.4] - 2023-09-24
 - Add params to task (rake immosquare_yaml:translate LOCALE="en")
 
