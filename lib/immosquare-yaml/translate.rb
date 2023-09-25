@@ -169,11 +169,27 @@ module ImmosquareYaml
       ##============================================================##
       def translate_with_open_ai(array, from, to)
         ##============================================================##
+        ## https://platform.openai.com/docs/models/
+        ## No all models are available for all users.
+        ## The model `gpt-4-32k` does not exist or you do not have access to it.
+        ## Learn more: https://help.openai.com/en/articles/7102672-how-can-i-access-gpt-4.
+        ##============================================================##
+        model_name = ImmosquareYaml.configuration.openai_model
+        models     = [
+          {:name => "gpt-3.5-turbo",      :tokens => 4097,    :input => 0.0015, :output => 0.002, :group_size => 75},
+          {:name => "gpt-3.5-turbo-16k",  :tokens => 16_385,  :input => 0.0030, :output => 0.004, :group_size => 300},
+          {:name => "gpt-4",              :tokens => 8192,    :input => 0.0300, :output => 0.060, :group_size => 150},
+          {:name => "gpt-4-32k",          :tokens => 32_769,  :input => 0.0600, :output => 0.120, :group_size => 600}
+        ]
+        model = models.find {|m| m[:name] == model_name }
+        model = models.find {|m| m[:name] == "gpt-3.5-turbo-16k" } if model.nil?
+
+        ##============================================================##
         ## Manage blank values
         ##============================================================##
         blank_values       = [NOTHING, SPACE, "\"\"", "\"#{SPACE}\""]
         cant_be_translated = "CANNOT-BE-TRANSLATED"
-        array         = array.map do |key, from, to|
+        array              = array.map do |key, from, to|
           [key, from, blank_values.include?(from) ? from : to] 
         end 
 
@@ -207,7 +223,7 @@ module ImmosquareYaml
         ## Call OpenAI API
         ##============================================================##
         index         = 0
-        group_size    = 300
+        group_size    = model[:group_size]
         from_iso      = ISO_639.find_by_code(from).english_name.split(";").first
         to_iso        = ISO_639.find_by_code(to).english_name.split(";").first
         ai_resuslts   = []
@@ -238,10 +254,10 @@ module ImmosquareYaml
 
 
           begin
-            puts("we call OPENAI Api #{" for #{data_group.size} fields" if data_open_ai.size > group_size}")
+            puts("call OPENAI Api (with model #{model[:name]}) #{" for #{data_group.size} fields" if data_open_ai.size > group_size}")
             prompt = "#{prompt_init}:\n\n#{data_group.inspect}\n\n"
             body   = {
-              :model       => "gpt-3.5-turbo-16k",
+              :model       => model[:name],
               :messages    => [
                 {:role => "system", :content => prompt_system},
                 {:role => "user",   :content => prompt}
@@ -266,8 +282,10 @@ module ImmosquareYaml
             ##============================================================##
             ## We calculate the estimate price of the call
             ##============================================================##
-            price = ((response["usage"]["prompt_tokens"] / 1000.0) * 0.003) + ((response["usage"]["completion_tokens"] / 1000.0) * 0.004)
-            puts("Estimate price => #{price.round(3)} USD")
+            input_price   = (response["usage"]["prompt_tokens"] / 1000.0) * model[:input]
+            output_price  = (response["usage"]["completion_tokens"] / 1000.0) * model[:output]
+            price         = input_price + output_price
+            puts("Estimate price => #{input_price.round(3)} + #{output_price.round(3)} = #{price.round(3)} USD")
 
             ##============================================================##
             ## We check that the result is an array
