@@ -76,7 +76,7 @@ en:
     This is the third line of test #4.  
 ````
 
-After processing this YML file with ImmosquareYaml.clean, reserved keys such as yes and no are preserved, emojis are correctly interpreted, unnecessary quotes are removed, and multiline texts are formatted consistently.
+After processing this YML file with `ImmosquareYaml.clean(path_to_file`, reserved keys such as yes and no are preserved, emojis are correctly interpreted, unnecessary quotes are removed, and multiline texts are formatted consistently.
 
 ````YML
 en:
@@ -122,9 +122,55 @@ en:
     special8: "#croisillon"
     special9: "@arobase"
   "yes": This is not a boolean
-
 ````
 
+and you can have the automatically translated version avec la méthode `ImmosquareYaml::Translate.translate(path_to_file, "fr")`
+
+```YML
+fr:
+  demo: démonstration
+  demo2:
+    demo2-1:
+      demo2-1-1: bonjour
+      demo2-1-2: null
+      demo2-1-3: John Doe
+  demo3:
+    "1": "tâche #1"
+    "2": "tâche #2"
+    "3": "tâche #2"
+  demo4:
+    "1": "tâche #1"
+    "2": "tâche #2"
+    "3": "tâche #2"
+  description1: |-
+    Ceci est la première ligne du test #1 😀.
+    Ceci est la deuxième ligne du test #1.
+    Ceci est la troisième ligne du test #1
+  description2: |
+    Ceci est la première ligne du test #2 😀.
+    Ceci est la deuxième ligne du test #2.
+    Ceci est la troisième ligne du test #2.
+  description3: |-
+    Ceci est la première ligne du test #3 😀.
+    Ceci est la deuxième ligne du test #3.
+    Ceci est la troisième ligne du test #3.
+  description4: |
+    Ceci est la première ligne du test #4 😀. Ceci est la deuxième ligne du test #4. Ceci est la troisième ligne du test #4.
+  emoji: "Voici un emoji1: 😀"
+  emoji2: Voici un emoji2 😀
+  "no": Ceci non plus
+  some_special_characters:
+    special1: "-tiret"
+    special2: "*astérisque"
+    special3: "%pourcent"
+    special4: ",virgule"
+    special5: "!point_d'exclamation"
+    special6: "?point_d'interrogation"
+    special7: "&esperluette"
+    special8: "#croisillon"
+    special9: "@arobase"
+  "yes": Ce n'est pas un booléen
+```
 
 
 ## Installation
@@ -220,18 +266,17 @@ ImmosquareYaml::Translate.translate('path/to/your/file.yml', 'fr')
 
 Two rake tasks have been included to ease YML file management in a Rails application:
 
-1. **Translation**: Translates translation files within your Rails application. To use this task:
-
-```bash
-rake immosquare_yaml:translate SOURCE_LOCALE=fr
-```
-
-2. **Cleaning**: Cleans translation files within your Rails application. To use this task:
+1. **Cleaning**: Cleans translation files within your Rails application. To use this task:
 
 ```bash
 rake immosquare_yaml:clean
 ```
 
+2. **Translation**: Translates translation files within your Rails application. To use this task:
+
+```bash
+rake immosquare_yaml:translate SOURCE_LOCALE=fr
+```
 
 
 ## Contributing
