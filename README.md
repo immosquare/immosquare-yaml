@@ -5,6 +5,7 @@ ImmosquareYaml is a dedicated Ruby gem crafted to parse, dump, manage, and trans
 In the past, there have been significant challenges in using existing YAML parsers like [Psych](https://github.com/ruby/psych) and [YAML](https://github.com/ruby/yaml) (which internally utilizes Psych). Issues arose, such as interpreting translation keys like `yes:`, `no:`, and others as booleans. Additionally, they showed shortcomings in effectively handling multiline texts, often faltering with notations like `key: |`, `key: |-`, `key: >`, `key: |5+`, `key: |3-`, and more.
 
 ## Why Choose ImmosquareYaml?
+
 Here are some standout features and advantages of this gem:
 
 - **Reserved Key Management**: Handles keys with "reserved" words seamlessly.
@@ -78,7 +79,7 @@ en:
     This is the third line of test #4.  
 ````
 
-After processing this YML file with reserved keys such as yes and no are preserved, emojis are correctly interpreted, unnecessary quotes are removed, and multiline texts are formatted consistently.
+After processing this YML file, reserved keys such as yes and no are preserved, emojis are correctly interpreted, unnecessary quotes are removed, and multiline texts are formatted consistently.
 
 ```ruby
 ImmosquareYaml.clean(path_to_file)
@@ -210,14 +211,13 @@ gem install immosquare-yaml
 
 ### Parsing YAML Files
 
-To parse a YAML file and transform it into a Ruby hash, use the `ImmosquareYaml.parse` method:
+To convert a YAML file into a Ruby hash:
 
 ```ruby
 hash = ImmosquareYaml.parse('path/to/your/file.yml')
 ```
 
-
-By default, the resulting hash will be sorted. If you do not wish to sort the hash, pass the `:sort => false` option:
+By default, the resultant hash will be sorted. If you wish to prevent sorting:
 
 ```ruby
 hash = ImmosquareYaml.parse('path/to/your/file.yml', :sort => false)
@@ -227,13 +227,13 @@ hash = ImmosquareYaml.parse('path/to/your/file.yml', :sort => false)
 
 ### Cleaning YAML Files
 
-To clean a YAML file, use the `ImmosquareYaml.clean` method:
+To sanitize a YAML file:
 
 ```ruby
 ImmosquareYaml.clean('path/to/your/file.yml')
 ```
 
-As with the parse method, the file will be sorted by default after cleaning. If you do not wish to sort the file, pass the `:sort => false` option:
+If you wish to prevent sorting after cleaning:
 
 ```ruby
 ImmosquareYaml.clean('path/to/your/file.yml', :sort => false)
@@ -243,7 +243,7 @@ ImmosquareYaml.clean('path/to/your/file.yml', :sort => false)
 
 ### Creating YAML Files
 
-To create a YAML file from a Ruby hash, use the `ImmosquareYaml.dump` method:
+To create a YAML file from a Ruby hash:
 
 ```ruby
 hash = { 'a' => 1, 'b' => 2 }
@@ -254,14 +254,13 @@ ImmosquareYaml.dump(hash, 'path/to/your/new/file.yml')
 
 ### Translate YAML Files
 
-Leveraging the growing prowess of AI tools, ImmosquareYaml has branched out to encompass translation features. The translation module utilizes OpenAI's API to translate YML files.
+Experience the advanced capabilities of AI tools. ImmosquareYaml introduces translation features backed by the OpenAI's API.
 
 ---
 
 ### Configuration
 
-Before using the translation feature, ensure you've set up your OpenAI API key and have chosen the OpenAI model you'd like to use. We have to add a initilizer in your Rails App.
-
+To use the translation feature, you need to set up your OpenAI API key and specify the OpenAI model in an Rails initializer.
 
 ```ruby
 ## config/initializers/immosquare-yaml.rb
@@ -284,13 +283,13 @@ end
 
 ### Translation
 
-The primary method provided by the translation module is `translate`, which takes the file path, target locale.
+To translate, just call the translate method specifying the file path and the desired locale:
 
 ```ruby
 ImmosquareYaml::Translate.translate("path/to/your/file.yml", "fr")
 ```
 
-If you wish reset translations fields in your target file, pass the  ``:reset_translations => true` option
+If you need to reset the translation fields in your target file:
 
 ```ruby
 ImmosquareYaml::Translate.translate("path/to/your/file.yml", "fr", :reset_translations => true)
@@ -301,15 +300,15 @@ ImmosquareYaml::Translate.translate("path/to/your/file.yml", "fr", :reset_transl
 
 ### Rake Tasks
 
-Two rake tasks have been included to ease YML file management in a Rails application:
+For Rails users, there are two rake tasks provided to make YML file management simpler:
 
-1. **Cleaning**: Cleans all translation files within your Rails application. To use this task:
+1. **Cleaning**: Cleans all translation files within your Rails application:
 
 ```bash
 rake immosquare_yaml:clean
 ```
 
-2. **Translation**: Translates all translation files within your Rails application. To use this task:
+2. **Translation**: Translates all translation files within your Rails application:
 
 ```bash
 rake immosquare_yaml:translate SOURCE_LOCALE=fr
