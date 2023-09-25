@@ -490,35 +490,32 @@ module ImmosquareYaml
     ##============================================================##
     ## Strategy:
     ## 1. Forcefully convert the key to a string to handle gsub operations, especially if it's an integer.
-    ## 2. Check if the key is an integer.
-    ## 3. Remove quotes if they are present.
+    ## 2. Remove quotes if they are present.
+    ## 3. Check if the key is an integer.
     ## 4. Re-add quotes if the key is a reserved word or an integer.
-    #
-    ## Regular Expression Explanation:
-    ## /\A(['“‘”’"])(.*)\1\z/
-    ## \A:         Matches the start of the string, ensuring our pattern begins at the very start of the string.
-    ## (['“‘”’"]): Captures a single quote character. It matches any of the characters specified within the brackets.
-    ##             This includes various types of single and double quotes.
-    ## (.*) :      Captures zero or more of any character. It "captures" the entirety of the string between the quotes.
-    ## \1:         Refers back to the first captured group, ensuring the same type of quote character is found at the end.
-    ## \z:         Matches the end of the string, ensuring our pattern matches up to the very end.
-    #
-    ## In the second argument of gsub, we use '\2' to refer back to the content captured by the second capture group.
+    ##
     ## This allows us to fetch the string without the surrounding quotes.
     ##============================================================##
     def clean_key(key)
       ##============================================================##
       ## Convert key to string to avoid issues with gsub operations
-      ## + Check if the key is an integer 
       ##============================================================##
-      key    = key.to_s
-      is_int = key =~ /\A[-+]?\d+\z/
+      key = key.to_s
 
       ##============================================================##
       ## Remove surrounding quotes from the key
+      ##============================================================##
+      key = key[1..-2] if (key.start_with?(DOUBLE_QUOTE) && key.end_with?(DOUBLE_QUOTE)) || (key.start_with?(SIMPLE_QUOTE) && key.end_with?(SIMPLE_QUOTE))
+
+      ##============================================================##
+      ## Check if the key is an integer 
+      ##============================================================##
+      is_int = key =~ /\A[-+]?\d+\z/
+
+      ##============================================================##
+      ## 
       ## Re-add quotes if the key is in the list of reserved keys or is an integer
       ##============================================================##
-      key = key.gsub(/\A(['“”‘’"]?)(.*)\1\z/, '\2')
       key = "\"#{key}\"" if RESERVED_KEYS.include?(key) || is_int
       key
     end
