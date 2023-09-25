@@ -171,7 +171,8 @@ module ImmosquareYaml
         ##============================================================##
         ## Manage blank values
         ##============================================================##
-        blank_values  = [NOTHING, SPACE, "\"\"", "\"#{SPACE}\""]
+        blank_values       = [NOTHING, SPACE, "\"\"", "\"#{SPACE}\""]
+        cant_be_translated = "CANNOT-BE-TRANSLATED"
         array         = array.map do |key, from, to|
           [key, from, blank_values.include?(from) ? from : to] 
         end 
@@ -216,8 +217,8 @@ module ImmosquareYaml
                         "\nRules to respect:\n" \
                         "- Do not escape apostrophes in translated strings; leave them as they are.\n" \
                         "- Special characters, except apostrophes, that need to be escaped in translated strings should be escaped using a single backslash (\\), not double (\\\\).\n" \
-                        "- If a string cannot be translated use 'nil' as the translation value witouth simple quote '', just nil\n" \
-                        "- If you dont know the correct translatation but the original word seems to make sense in the original language use it for the translated field otherwise use the nil strategy of the preceding point\n" \
+                        "- If a string cannot be translated use the string '#{cant_be_translated}' translated as the translation value witouth quote (simple or double) quote, just the string\n" \
+                        "- If you dont know the correct translatation but the original word seems to make sense in the original language use it for the translated field otherwise use the #{cant_be_translated} strategy of the preceding point\n" \
                         "- Use only doubles quotes (\") to enclose translated strings and avoid using single quotes (').\n" \
                         "- Your output must ONLY be an array with the same number of pairs as the input, without any additional text or explanation.\n" \
                         "- You need to check that the globle array is correctly closed at the end of the response. (the response must therefore end with ]] to to be consistent)"
@@ -252,6 +253,7 @@ module ImmosquareYaml
             
             puts("responded in #{(Time.now - t0).round(2)} seconds")
             raise(call["error"]["message"]) if call.code != 200 
+
             
             ##============================================================##
             ## We check that the result is complete
@@ -260,6 +262,7 @@ module ImmosquareYaml
             choice    = response["choices"][0]
             raise("Result is not complete") if choice["finish_reason"] != "stop"
 
+            
             ##============================================================##
             ## We calculate the estimate price of the call
             ##============================================================##
@@ -276,7 +279,7 @@ module ImmosquareYaml
             ## We save the result
             ##============================================================##
             content.each do |index, translation|
-              ai_resuslts << [index, translation]
+              ai_resuslts << [index, translation == cant_be_translated ? nil : translation]
             end
           rescue StandardError => e
             puts("error OPEN AI API => #{e.message}")
