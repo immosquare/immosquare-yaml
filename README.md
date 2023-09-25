@@ -1,6 +1,6 @@
 # ImmosquareYaml
 
-ImmosquareYaml is a specialized Ruby gem primarily tailored for parsing and dumping YML translation files. Its capabilities, however, are not limited to translations, as it showcases an adeptness in managing any YML file seamlessly.
+ImmosquareYaml is a dedicated Ruby gem crafted to parse, dump, manage, and translate YML translation files with finesse. 
 
 In the past, there have been significant challenges in using existing YAML parsers like [Psych](https://github.com/ruby/psych) and [YAML](https://github.com/ruby/yaml) (which internally utilizes Psych). Issues arose, such as interpreting translation keys like `yes:`, `no:`, and others as booleans. Additionally, they showed shortcomings in effectively handling multiline texts, often faltering with notations like `key: |`, `key: |-`, `key: >`, `key: |5+`, `key: |3-`, and more.
 
@@ -26,7 +26,8 @@ en:
   demo: "demo" 
   yes: "This is not a boolean"
   no: "Neither is this"
-  emoji: "Here's an emoji: \U0001F600"
+  emoji: "Here's an emoji1: \U0001F600"
+  emoji2: "Here's an emoji2 \U0001F600"
   demo2:
     demo2-1:
       demo2-1-1: "hello"
@@ -36,6 +37,10 @@ en:
     1: "task #1"
     2: "task #2"
     3: "task #2"
+  demo4:
+    "1": "task #1"
+    "2": "task #2"
+    "3": "task #2"
   some_special_characters:
     special1: "-hyphen"
     special2: "*asterisk"
@@ -46,6 +51,16 @@ en:
     special7: "&ampersand"
     special8: "#hash"
     special9: "@at"
+  some_special_characters:
+    special1: """-tiret"""
+    special2: """*astérisque"""
+    special3: """%pourcent"""
+    special4: """,virgule"""
+    special5: """!point_d'exclamation"""
+    special6: """?point_d'interrogation"""
+    special7: """&esperluette"""
+    special8: """#croisillon"""
+    special9: """@arobase"""
   description1: "This is the first line of test #1 \U0001F600.\nThis is the second line of test#1.\nThis is the third line of test.#1"
   description2: |
     This is the first line of test #2 \U0001F600.
@@ -75,6 +90,10 @@ en:
     "1": "task #1"
     "2": "task #2"
     "3": "task #2"
+  demo4:
+    "1": "task #1"
+    "2": "task #2"
+    "3": "task #2"
   description1: |-
     This is the first line of test #1 😀.
     This is the second line of test#1.
@@ -89,19 +108,21 @@ en:
       This is the third line of test #3.
   description4: |
     This is the first line of test #4 😀. This is the second line of test #4. This is the third line of test #4.
-  emoji: "Here's an emoji: 😀"
+  emoji: "Here's an emoji1: 😀"
+  emoji2: Here's an emoji2 😀
   "no": Neither is this
   some_special_characters:
-    special1: "-hyphen"
-    special2: "*asterisk"
-    special3: "%percent"
-    special4: ",comma"
-    special5: "!exclamation"
-    special6: "?question_mark"
-    special7: "&ampersand"
-    special8: "#hash"
-    special9: "@at"
+    special1: "-tiret"
+    special2: "*astérisque"
+    special3: "%pourcent"
+    special4: ",virgule"
+    special5: "!point_d'exclamation"
+    special6: "?point_d'interrogation"
+    special7: "&esperluette"
+    special8: "#croisillon"
+    special9: "@arobase"
   "yes": This is not a boolean
+
 ````
 
 
