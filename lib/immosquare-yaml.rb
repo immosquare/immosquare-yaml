@@ -176,7 +176,8 @@ module ImmosquareYaml
             ## Remove quotes surrounding the value if they are present.
             ## They are not necessary in this case after | or |-
             ##============================================================##
-            value = value[1..-2] if (value.start_with?(DOUBLE_QUOTE) && value.end_with?(DOUBLE_QUOTE)) || (value.start_with?(SIMPLE_QUOTE) && value.end_with?(SIMPLE_QUOTE))
+            value = value[1..-2] while (value.start_with?(DOUBLE_QUOTE) && value.end_with?(DOUBLE_QUOTE)) || (value.start_with?(SIMPLE_QUOTE) && value.end_with?(SIMPLE_QUOTE))
+
 
             ##=============================================================##
             ## We parse on the 2 types of line breaks
@@ -567,10 +568,11 @@ module ImmosquareYaml
       value = value.gsub(WEIRD_QUOTES_REGEX, SIMPLE_QUOTE)
 
       ##============================================================##
-      ## Remove quotes surrounding the value if they are present.
+      ## Remove all quotes surrounding the value if they are present.
       ## They will be re-added later if necessary.
+      ## """"value"""" => value
       ##============================================================##
-      value = value[1..-2] if (value.start_with?(DOUBLE_QUOTE) && value.end_with?(DOUBLE_QUOTE)) || (value.start_with?(SIMPLE_QUOTE) && value.end_with?(SIMPLE_QUOTE))
+      value = value[1..-2] while (value.start_with?(DOUBLE_QUOTE) && value.end_with?(DOUBLE_QUOTE)) || (value.start_with?(SIMPLE_QUOTE) && value.end_with?(SIMPLE_QUOTE))
 
       ##============================================================##
       ## Convert emoji representations such as \U0001F600 to their respective emojis.

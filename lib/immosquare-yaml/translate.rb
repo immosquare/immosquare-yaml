@@ -196,7 +196,7 @@ module ImmosquareYaml
         ##============================================================##
         data_open_ai = data_open_ai.map do |index, from, _to| 
           from = from.to_s
-          from = from[1..-2] if (from.start_with?(DOUBLE_QUOTE) && from.end_with?(DOUBLE_QUOTE)) || (from.start_with?(SIMPLE_QUOTE) && from.end_with?(SIMPLE_QUOTE))
+          from = from[1..-2] while (from.start_with?(DOUBLE_QUOTE) && from.end_with?(DOUBLE_QUOTE)) || (from.start_with?(SIMPLE_QUOTE) && from.end_with?(SIMPLE_QUOTE))
           [index, from] 
         end
 
