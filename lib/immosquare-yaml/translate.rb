@@ -248,13 +248,13 @@ module ImmosquareYaml
         ##============================================================##
         ## Loop
         ##============================================================##
-        puts("fields to translate : #{data_open_ai.size}#{" by group of #{group_size}" if data_open_ai.size > group_size}")
+        puts("fields to translate from #{from_iso} (#{from}) to #{to_iso} (#{to}) : #{data_open_ai.size}#{" by group of #{group_size}" if data_open_ai.size > group_size}")
         while index < data_open_ai.size
           data_group = data_open_ai[index, group_size]
 
 
           begin
-            puts("call OPENAI Api (with model #{model[:name]}) #{" for #{data_group.size} fields" if data_open_ai.size > group_size}")
+            puts("call OPENAI Api (with model #{model[:name]}) #{" for #{data_group.size} fields (#{index}-#{index+data_group.size})" if data_open_ai.size > group_size}")
             prompt = "#{prompt_init}:\n\n#{data_group.inspect}\n\n"
             body   = {
               :model       => model[:name],
@@ -265,7 +265,7 @@ module ImmosquareYaml
               :temperature => 0.0
             }
             t0   = Time.now
-            call = HTTParty.post("https://api.openai.com/v1/chat/completions", :body => body.to_json, :headers => headers, :timeout => 240)
+            call = HTTParty.post("https://api.openai.com/v1/chat/completions", :body => body.to_json, :headers => headers, :timeout => 500)
             
             puts("responded in #{(Time.now - t0).round(2)} seconds")
             raise(call["error"]["message"]) if call.code != 200 

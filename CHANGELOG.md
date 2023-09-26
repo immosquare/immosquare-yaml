@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+## [0.1.8] - 2023-09-25
+- Increase timeout
+
 ## [0.1.7] - 2023-09-25
 - fix bug with RESET_TRANSLATIONS flag
 
