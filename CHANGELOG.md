@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+## [0.1.9] - 2023-09-25
+- Improve prompt to avoid comments
+
 ## [0.1.8] - 2023-09-25
 - Increase timeout
 

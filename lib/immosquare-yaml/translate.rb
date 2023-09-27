@@ -229,14 +229,14 @@ module ImmosquareYaml
         ai_resuslts   = []
         prompt_system = "You are a translation tool from #{from_iso} to #{to_iso}\n" \
                         "The input is an array of pairs, where each pair contains an index and a string to translate, formatted as [index, string_to_translate]\n" \
-                        "Your task is to create an output array where each element is a pair consisting of the index and the translated string, formatted as [index, 'string_translated']\n" \
+                        "Your task is to create an output ARRAY where each element is a pair consisting of the index and the translated string, formatted as [index, 'string_translated']\n" \
                         "\nRules to respect:\n" \
                         "- Do not escape apostrophes in translated strings; leave them as they are.\n" \
                         "- Special characters, except apostrophes, that need to be escaped in translated strings should be escaped using a single backslash (\\), not double (\\\\).\n" \
                         "- If a string cannot be translated use the string '#{cant_be_translated}' translated as the translation value witouth quote (simple or double) quote, just the string\n" \
                         "- If you dont know the correct translatation use the #{cant_be_translated} strategy of the preceding point\n" \
                         "- Use only doubles quotes (\") to enclose translated strings and avoid using single quotes (').\n" \
-                        "- Your output must ONLY be an array with the same number of pairs as the input, without any additional text or explanation.\n" \
+                        "- Your output must ONLY be an array with the same number of pairs as the input, without any additional text or explanation. DO NOT COMMENT!\n" \
                         "- You need to check that the globle array is correctly closed at the end of the response. (the response must therefore end with ]] to to be consistent)"
         prompt_init   = "Please proceed with translating the following array:"
         headers       = {
