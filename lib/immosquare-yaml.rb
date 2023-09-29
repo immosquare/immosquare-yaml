@@ -523,7 +523,7 @@ module ImmosquareYaml
     ## In YAML "inblock" scenarios, there's no need to add quotes
     ## around values as it's inherently handled.
     ## ============================================================ ##
-    def clean_value(value, with_quotes_verif: true)
+    def clean_value(value, with_quotes_verif = true)
       ##============================================================##
       ## Convert value to string to prevent issues in subsequent operations
       ##============================================================##
