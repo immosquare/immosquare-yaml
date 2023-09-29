@@ -1,9 +1,15 @@
+require          "English"
 require_relative "immosquare-yaml/configuration"
 require_relative "immosquare-yaml/shared_methods"
 require_relative "immosquare-yaml/translate"
 require_relative "immosquare-yaml/railtie" if defined?(Rails)
 
-
+##===========================================================================##
+## Importing the 'English' library allows us to use more human-readable
+## global variables, such as $INPUT_RECORD_SEPARATOR instead of $/,
+## which enhances code clarity and makes it easier to understand
+## the purpose of these variables in our code.
+##===========================================================================##
 module ImmosquareYaml
   extend SharedMethods
 
@@ -222,21 +228,23 @@ module ImmosquareYaml
     ## The total number of lines in the normalized file.
     ##===========================================================================##
     def normalize_last_line(file_path)
+      end_of_line = $INPUT_RECORD_SEPARATOR
       ##============================================================##
       ## Read all lines from the file
       ## https://gist.github.com/guilhermesimoes/d69e547884e556c3dc95
       ##============================================================##
       content = File.read(file_path)
 
-      ##===========================================================================##
-      ## Remove all trailing empty lines at the end of the file
-      content.gsub!(/#{Regexp.escape($INPUT_RECORD_SEPARATOR)}+\z/, "")
-      ##===========================================================================##
 
       ##===========================================================================##
-      ## Append a newline at the end to maintain the file structure
-      ###===========================================================================##
-      content += $INPUT_RECORD_SEPARATOR
+      ## Remove all trailing empty lines at the end of the file
+      ##===========================================================================##
+      content.gsub!(/#{Regexp.escape(end_of_line)}+\z/, "")
+
+      ##===========================================================================##
+      ## Append an EOL at the end to maintain the file structure
+      ##===========================================================================##
+      content << end_of_line
 
       ##===========================================================================##
       ## Write the modified lines back to the file

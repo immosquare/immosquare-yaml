@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.1.12] - 2023-09-29
+
+- Improve normalize_last_line 
+
 ## [0.1.11] - 2023-09-29
 
 - Fix bug
