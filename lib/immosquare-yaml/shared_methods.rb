@@ -15,7 +15,7 @@ module ImmosquareYaml
       "YES", "NO", "ON", "OFF", "TRUE", "FALSE"
     ].freeze
 
-    
+
     ##============================================================##
     ## Deep transform values resursively
     ##============================================================##
@@ -31,7 +31,7 @@ module ImmosquareYaml
 
     ##============================================================##
     ## sort_by_key Function
-    ## Purpose: Sort a hash by its keys, optionally recursively, with 
+    ## Purpose: Sort a hash by its keys, optionally recursively, with
     ## case-insensitive comparison and stripping of double quotes.
     ## ============================================================ #
     def sort_by_key(hash, recursive = false, &block)

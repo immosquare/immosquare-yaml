@@ -3,7 +3,6 @@ require "rake"
 require "immosquare-yaml"
 
 namespace :immosquare_yaml do
-  
   desc "Clean, parse, dump, translate the sample files"
   namespace :sample do
     ##=============================================================##
@@ -12,7 +11,7 @@ namespace :immosquare_yaml do
     def load_config
       path = "#{File.dirname(__FILE__)}/config_dev.yml"
       abort("Error: config_dev.yml not found") if !File.exist?(path)
-      
+
       ##=============================================================##
       ## Load config keys from config_dev.yml
       ##=============================================================##
@@ -25,7 +24,7 @@ namespace :immosquare_yaml do
     end
 
     ##=============================================================##
-    ## Clean the sample YAML file                                  
+    ## Clean the sample YAML file
     ##=============================================================##
     desc "Clean the sample files"
     task :clean do
@@ -35,7 +34,7 @@ namespace :immosquare_yaml do
     end
 
     ##=============================================================##
-    ## Parse the sample YAML file                                  
+    ## Parse the sample YAML file
     ##=============================================================##
     desc "Parse the sample files"
     task :parse do
@@ -45,7 +44,7 @@ namespace :immosquare_yaml do
     end
 
     ##=============================================================##
-    ## Dump the sample YAML file                                  
+    ## Dump the sample YAML file
     ##=============================================================##
     desc "Dump the sample files"
     task :dump do
@@ -65,7 +64,4 @@ namespace :immosquare_yaml do
       ImmosquareYaml::Translate.translate(input, "fr")
     end
   end
-
-
-  
 end

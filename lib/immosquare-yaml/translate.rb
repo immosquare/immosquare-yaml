@@ -3,7 +3,6 @@ require "httparty"
 
 
 module ImmosquareYaml
-  
   module Translate
     extend SharedMethods
 
@@ -23,10 +22,10 @@ module ImmosquareYaml
           ##=============================================================##
           ## Load config keys from config_dev.yml
           ##=============================================================##
-          raise("Error: openai_api_key not found in config_dev.yml") if ImmosquareYaml.configuration.openai_api_key.nil? 
+          raise("Error: openai_api_key not found in config_dev.yml") if ImmosquareYaml.configuration.openai_api_key.nil?
           raise("Error: File #{file_path} not found")                if !File.exist?(file_path)
           raise("Error: locale is not a locale")                     if !locale_to.is_a?(String) || locale_to.size != 2
-  
+
           ##============================================================##
           ## We clean the file before translation
           ##============================================================##
@@ -63,7 +62,7 @@ module ImmosquareYaml
           ##============================================================##
           array_to = translatable_array(hash_to)
           array_to = array_to.map {|k, v| [k, v, nil] }
-          
+
           ##============================================================##
           ## If we already have a translation file for the language
           ## we get the values in it and put it in our
@@ -121,7 +120,7 @@ module ImmosquareYaml
       ## format = "string" and keys_only = true  => ["fr.demo1", "fr.demo2.demo2-1"]
       ## format = "array"  and keys_only = false => [[["fr", "demo1"], "demo1"], [["fr", "demo2", "demo2-1"], "demo2-1"]]
       ## format = "array"  and keys_only = true  => [["fr", "demo1"], ["fr", "demo2", "demo2-1"]]
-      ## ============================================================ 
+      ## ============================================================
       def translatable_array(hash, key = nil, result = [], **options)
         options = {
           :format    => "string",
@@ -140,7 +139,6 @@ module ImmosquareYaml
           result << (options[:keys_only] ? r2 : [r2, hash])
         end
         result
-        
       end
 
       ##============================================================##
@@ -156,13 +154,13 @@ module ImmosquareYaml
           parent[leaf]  = value
         end
         final
-      end      
+      end
 
       ##============================================================##
       ## Translate with OpenAI
-      ## 
+      ##
       ## [
-      ##  ["en.mlsconnect.contact_us", "Nous contacter", "Contact us"], 
+      ##  ["en.mlsconnect.contact_us", "Nous contacter", "Contact us"],
       ##  ["en.mlsconnect.description", "Description", nil],
       ##  ...
       ## ]
@@ -190,8 +188,8 @@ module ImmosquareYaml
         blank_values       = [NOTHING, SPACE, "\"\"", "\"#{SPACE}\""]
         cant_be_translated = "CANNOT-BE-TRANSLATED"
         array              = array.map do |key, from, to|
-          [key, from, blank_values.include?(from) ? from : to] 
-        end 
+          [key, from, blank_values.include?(from) ? from : to]
+        end
 
 
         ##============================================================##
@@ -211,14 +209,14 @@ module ImmosquareYaml
         ## Remove quotes surrounding the value if they are present.
         ## and remove to to avoid error in translation
         ##============================================================##
-        data_open_ai = data_open_ai.map do |index, from, _to| 
+        data_open_ai = data_open_ai.map do |index, from, _to|
           from = from.to_s
           from = from[1..-2] while (from.start_with?(DOUBLE_QUOTE) && from.end_with?(DOUBLE_QUOTE)) || (from.start_with?(SIMPLE_QUOTE) && from.end_with?(SIMPLE_QUOTE))
-          [index, from] 
+          [index, from]
         end
 
         return array if data_open_ai.empty?
-        
+
         ##============================================================##
         ## Call OpenAI API
         ##============================================================##
@@ -243,8 +241,8 @@ module ImmosquareYaml
           "Content-Type"  => "application/json",
           "Authorization" => "Bearer #{ImmosquareYaml.configuration.openai_api_key}"
         }
-        
-        
+
+
         ##============================================================##
         ## Loop
         ##============================================================##
@@ -254,7 +252,7 @@ module ImmosquareYaml
 
 
           begin
-            puts("call OPENAI Api (with model #{model[:name]}) #{" for #{data_group.size} fields (#{index}-#{index+data_group.size})" if data_open_ai.size > group_size}")
+            puts("call OPENAI Api (with model #{model[:name]}) #{" for #{data_group.size} fields (#{index}-#{index + data_group.size})" if data_open_ai.size > group_size}")
             prompt = "#{prompt_init}:\n\n#{data_group.inspect}\n\n"
             body   = {
               :model       => model[:name],
@@ -266,11 +264,11 @@ module ImmosquareYaml
             }
             t0   = Time.now
             call = HTTParty.post("https://api.openai.com/v1/chat/completions", :body => body.to_json, :headers => headers, :timeout => 500)
-            
-            puts("responded in #{(Time.now - t0).round(2)} seconds")
-            raise(call["error"]["message"]) if call.code != 200 
 
-            
+            puts("responded in #{(Time.now - t0).round(2)} seconds")
+            raise(call["error"]["message"]) if call.code != 200
+
+
             ##============================================================##
             ## We check that the result is complete
             ##============================================================##
@@ -278,7 +276,7 @@ module ImmosquareYaml
             choice    = response["choices"][0]
             raise("Result is not complete") if choice["finish_reason"] != "stop"
 
-            
+
             ##============================================================##
             ## We calculate the estimate price of the call
             ##============================================================##
@@ -313,7 +311,7 @@ module ImmosquareYaml
         ##============================================================##
         ai_resuslts.each do |index, translation|
           begin
-            array[index.to_i][2] = translation  
+            array[index.to_i][2] = translation
           rescue StandardError => e
             puts(e.message)
           end
@@ -322,10 +320,10 @@ module ImmosquareYaml
         ##============================================================##
         ## We return the modified array
         ##============================================================##
-        array.map.with_index do |(k, from, to), index| 
+        array.map.with_index do |(k, from, to), index|
           from = from.to_s
           to   = "#{DOUBLE_QUOTE}#{to}#{DOUBLE_QUOTE}" if ai_resuslts.find {|i, _t| i == index } && ((from.start_with?(DOUBLE_QUOTE) && from.end_with?(DOUBLE_QUOTE)) || (from.start_with?(SIMPLE_QUOTE) && from.end_with?(SIMPLE_QUOTE)))
-          [k, from, to] 
+          [k, from, to]
         end
       end
 

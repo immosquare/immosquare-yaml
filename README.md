@@ -1,6 +1,6 @@
 # ImmosquareYaml
 
-ImmosquareYaml is a dedicated Ruby gem crafted to parse, dump, manage, and translate YML translation files with finesse. 
+ImmosquareYaml is a dedicated Ruby gem crafted to parse, dump, manage, and translate YML translation files with finesse.
 
 In the past, there have been significant challenges in using existing YAML parsers like [Psych](https://github.com/ruby/psych) and [YAML](https://github.com/ruby/yaml) (which internally utilizes Psych). Issues arose, such as interpreting translation keys like `yes:`, `no:`, and others as booleans. Additionally, they showed shortcomings in effectively handling multiline texts, often faltering with notations like `key: |`, `key: |-`, `key: >`, `key: |5+`, `key: |3-`, and more.
 
@@ -24,9 +24,9 @@ Whether you're managing translations, real estate data, or any other form of YML
 
 Let's assume you have a YML file with some reserved keys, multiline texts, and emojis:
 
-````YML
+```YML
 en:
-  demo: "demo" 
+  demo: "demo"
   yes: "This is not a boolean"
   no: "Neither is this"
   emoji: "Here's an emoji1: \U0001F600"
@@ -73,11 +73,11 @@ en:
       This is the first line of test #3 \U0001F600.
       This is the second line of test #3.
       This is the third line of test #3.
-  description4: > 
+  description4: >
     This is the first line of test #4 \U0001F600.
     This is the second line of test #4.
-    This is the third line of test #4.  
-````
+    This is the third line of test #4.
+```
 
 After processing this YML file, reserved keys such as yes and no are preserved, emojis are correctly interpreted, unnecessary quotes are removed, and multiline texts are formatted consistently.
 
@@ -85,7 +85,7 @@ After processing this YML file, reserved keys such as yes and no are preserved, 
 ImmosquareYaml.clean(path_to_file)
 ```
 
-````YML
+```YML
 en:
   demo: demo
   demo2:
@@ -129,7 +129,7 @@ en:
     special8: "#croisillon"
     special9: "@arobase"
   "yes": This is not a boolean
-````
+```
 
 and you can have the automatically translated version avec la méthode `
 
@@ -297,7 +297,6 @@ ImmosquareYaml::Translate.translate("path/to/your/file.yml", "fr", :reset_transl
 
 ---
 
-
 ### Rake Tasks
 
 For Rails users, there are two rake tasks provided to make YML file management simpler:
@@ -309,7 +308,7 @@ rake immosquare_yaml:clean
 ```
 
 2. **Translation**: Translates all translation files within your Rails application:
-Default SOURCE_LOCAL is frencb(fr) & default RESET_TRANSLATIONS is false
+   Default SOURCE_LOCAL is frencb(fr) & default RESET_TRANSLATIONS is false
 
 ```bash
 rake immosquare_yaml:translate
@@ -318,7 +317,6 @@ rake immosquare_yaml:translate
 ```bash
 rake immosquare_yaml:translate SOURCE_LOCALE=en RESET_TRANSLATIONS=true
 ```
-
 
 ## Contributing
 
