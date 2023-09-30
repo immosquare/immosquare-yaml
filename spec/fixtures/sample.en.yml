@@ -40,3 +40,4 @@ en:
     This is the first line of test #4 \U0001F600.
     This is the second line of test #4.
     This is the third line of test #4.  
+  my_final_key: "final key"
