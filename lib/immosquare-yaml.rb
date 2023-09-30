@@ -1,4 +1,5 @@
 require          "English"
+require          "immosquare-extensions"
 require_relative "immosquare-yaml/configuration"
 require_relative "immosquare-yaml/shared_methods"
 require_relative "immosquare-yaml/translate"
@@ -73,7 +74,7 @@ module ImmosquareYaml
         ##===========================================================================##
         clean_yml(file_path)
         parsed_yml = parse(file_path)
-        parsed_yml = sort_by_key(parsed_yml, options[:sort])
+        parsed_yml = parsed_yml.sort_by_key(true)
         parsed_yml = dump(parsed_yml)
 
         ##===========================================================================##
@@ -89,6 +90,7 @@ module ImmosquareYaml
         true
       rescue StandardError => e
         puts(e.message)
+        puts(e.backtrace)
         false
       end
     end
@@ -122,7 +124,7 @@ module ImmosquareYaml
         ##===========================================================================##
         clean_yml(file_path)
         parsed_xml = parse_xml(file_path)
-        parsed_xml = sort_by_key(parsed_xml, options[:sort]) if options[:sort]
+        parsed_xml = parsed_xml.sort_by_key(true) if options[:sort]
 
         ##===========================================================================##
         ## Restore original content

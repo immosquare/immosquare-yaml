@@ -21,5 +21,6 @@ Gem::Specification.new do |spec|
   
   spec.add_dependency("iso-639",  "~> 0")
   spec.add_dependency("httparty", "~> 0")
+  spec.add_dependency("immosquare-extensions", "~> 0")
 
 end
