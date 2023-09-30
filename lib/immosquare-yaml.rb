@@ -75,7 +75,7 @@ module ImmosquareYaml
         ##===========================================================================##
         clean_yml(file_path)
         parsed_yml = parse(file_path)
-        parsed_yml = parsed_yml.sort_by_key(true)
+        parsed_yml = parsed_yml.sort_by_key
         parsed_yml = dump(parsed_yml)
 
         ##===========================================================================##
@@ -134,7 +134,7 @@ module ImmosquareYaml
         ## parse the file & sort if necessary
         ##===========================================================================##
         parsed_xml = parse_xml(file_path)
-        parsed_xml = parsed_xml.sort_by_key(true) if options[:sort]
+        parsed_xml = parsed_xml.sort_by_key if options[:sort]
 
         ##===========================================================================##
         ## Restore original content
