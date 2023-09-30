@@ -1,6 +1,10 @@
 ## [Unreleased]
 
-## [0.1.12] - 2023-09-29
+## [0.1.14] - 2023-09-30
+
+- Add min version for immosquare-extensions
+
+## [0.1.13] - 2023-09-30
 
 - Add immosquare-extensions
 
