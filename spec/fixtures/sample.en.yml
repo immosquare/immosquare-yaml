@@ -27,16 +27,6 @@ en:
     special7: "&ampersand"
     special8: "#hash"
     special9: "@at"
-  some_special_characters:
-    special1: """-tiret"""
-    special2: """*astérisque"""
-    special3: """%pourcent"""
-    special4: """,virgule"""
-    special5: """!point_d'exclamation"""
-    special6: """?point_d'interrogation"""
-    special7: """&esperluette"""
-    special8: """#croisillon"""
-    special9: """@arobase"""
   description1: "This is the first line of test #1 \U0001F600.\nThis is the second line of test#1.\nThis is the third line of test.#1"
   description2: |
     This is the first line of test #2 \U0001F600.
