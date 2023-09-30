@@ -55,6 +55,7 @@ module ImmosquareYaml
       }.merge(options)
 
       begin
+        output_file_path = nil
         raise("File not found") if !File.exist?(file_path)
 
         ##===========================================================================##
@@ -89,6 +90,10 @@ module ImmosquareYaml
         File.write(output_file_path, parsed_yml)
         true
       rescue StandardError => e
+        ##===========================================================================##
+        ## Restore original content if necessary
+        ##===========================================================================##
+        File.write(file_path, original_content) if output_file_path != file_path && !original_content.nil?
         puts(e.message)
         puts(e.backtrace)
         false
@@ -132,17 +137,21 @@ module ImmosquareYaml
         parsed_xml = parsed_xml.sort_by_key(true) if options[:sort]
 
         ##===========================================================================##
+        ## Restore original content
+        ##===========================================================================##
+        File.write(file_path, original_content) if !original_content.nil?
+
+        ##===========================================================================##
         ## Return the parsed YAML file
         ##===========================================================================##
         parsed_xml
       rescue StandardError => e
-        puts(e.message)
-        false
-      ensure
         ##===========================================================================##
         ## Restore original content
         ##===========================================================================##
         File.write(file_path, original_content) if !original_content.nil?
+        puts(e.message)
+        false
       end
     end
 
