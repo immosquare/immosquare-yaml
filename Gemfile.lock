@@ -1,9 +1,9 @@
 PATH
   remote: .
   specs:
-    immosquare-yaml (0.1.15)
+    immosquare-yaml (0.1.16)
       httparty (~> 0)
-      immosquare-extensions (~> 0, >= 0.1.4)
+      immosquare-extensions (~> 0, >= 0.1.5)
       iso-639 (~> 0)
 
 GEM
@@ -52,7 +52,7 @@ GEM
       htmlbeautifier (~> 1)
       immosquare-yaml (~> 0)
       neatjson (~> 0)
-    immosquare-extensions (0.1.4)
+    immosquare-extensions (0.1.5)
       unicode_utils (~> 1.4.0)
     iso-639 (0.3.6)
     json (2.6.3)

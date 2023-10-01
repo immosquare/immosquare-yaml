@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.1.16] - 2023-09-30
+
+- bump immosquare-extensions
+
 ## [0.1.15] - 2023-09-30
 
 - Improve sort_by_key method
