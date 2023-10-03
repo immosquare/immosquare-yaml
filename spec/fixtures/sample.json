@@ -13,11 +13,18 @@
       "\"2\"": "\"task #2\"",
       "\"3\"": "\"task #2\""
     },
+    "demo4": {
+      "\"1\"": "\"task #1\"",
+      "\"2\"": "\"task #2\"",
+      "\"3\"": "\"task #2\""
+    },
     "description1": "\"This is the first line of test #1 😀.\\nThis is the second line of test#1.\\nThis is the third line of test.#1\"",
     "description2": "This is the first line of test #2 😀.\nThis is the second line of test #2.\nThis is the third line of test #2.\n",
     "description3": "  This is the first line of test #3 😀.\n  This is the second line of test #3.\n  This is the third line of test #3.",
     "description4": "\"This is the first line of test #4 😀. This is the second line of test #4. This is the third line of test #4.\"\n",
-    "emoji": "\"Here's an emoji: 😀\"",
+    "emoji": "\"Here's an emoji1: 😀\"",
+    "emoji2": "Here's an emoji2 😀",
+    "my_final_key": "final key",
     "\"no\"": "Neither is this",
     "some_special_characters": {
       "special1": "\"-hyphen\"",

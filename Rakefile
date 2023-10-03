@@ -24,6 +24,16 @@ namespace :immosquare_yaml do
     end
 
     ##=============================================================##
+    ## Parse the sample YAML file
+    ##=============================================================##
+    desc "Parse the sample files"
+    task :parse do
+      data = ImmosquareYaml.parse("spec/fixtures/sample.en.yml")
+      puts JSON.pretty_generate(data)
+      File.write("spec/fixtures/sample.json", JSON.pretty_generate(data))
+    end
+
+    ##=============================================================##
     ## Clean the sample YAML file
     ##=============================================================##
     desc "Clean the sample files"
@@ -33,15 +43,6 @@ namespace :immosquare_yaml do
       ImmosquareYaml.clean(input, :output => output)
     end
 
-    ##=============================================================##
-    ## Parse the sample YAML file
-    ##=============================================================##
-    desc "Parse the sample files"
-    task :parse do
-      data = ImmosquareYaml.parse("spec/fixtures/sample.en.yml")
-      puts JSON.pretty_generate(data)
-      File.write("spec/fixtures/sample.json", JSON.pretty_generate(data))
-    end
 
     ##=============================================================##
     ## Dump the sample YAML file
