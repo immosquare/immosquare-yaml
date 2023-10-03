@@ -1,5 +1,5 @@
 en:
-  fruits: [apple, orange, 'banana']
+  fruits: [apple,   orange,          'banana', yes,    false]
   voitures:
     - marque: Toyota
       modèle: Corolla
