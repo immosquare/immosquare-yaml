@@ -282,7 +282,6 @@ module ImmosquareYaml
       weirdblock_indent = nil
       inblock           = false
       weirdblock        = false
-      inlist            = false
       line_index        = 1
 
       ##===================================================================================#
@@ -399,7 +398,7 @@ module ImmosquareYaml
         ## Handling keys without values: if the previous line ends with a colon (:) and is not
         ## followed by a value, we assign 'null' as the value
         ##===================================================================================#
-        if inblock == false && weirdblock == false && inlist == false && lines[-1] && lines[-1].end_with?(":") && last_inblock == false
+        if inblock == false && weirdblock == false && lines[-1] && lines[-1].end_with?(":") && last_inblock == false
           prev_indent = lines[-1][/\A */].size
           lines[-1] += " null" if prev_indent >= indent_level
         end
@@ -410,8 +409,8 @@ module ImmosquareYaml
         ## just a key.. but we have a newline
         ## fr: => ["fr", "\n"]
         ##============================================================##
-        split = inblock || weirdblock || inlist ? [current_line] : current_line.strip.split(":", 2)
-        key   = inblock || weirdblock || inlist ? nil : split[0].to_s.strip
+        split = inblock || weirdblock ? [current_line] : current_line.strip.split(":", 2)
+        key   = inblock || weirdblock ? nil : split[0].to_s.strip
 
         ##===================================================================================#
         ## Line processing based on various conditions such as being inside a block,
@@ -457,10 +456,18 @@ module ImmosquareYaml
         ## my key: line1 line2 line3
         ##============================================================##
         elsif split.size < 2
-          lines[-1] = (lines[-1] + " #{current_line.lstrip}").gsub(NEWLINE, NOTHING)
+          if current_line.lstrip.start_with?("-")
+            lines << current_line
+          else
+            lines[-1] = (lines[-1] + " #{current_line.lstrip}").gsub(NEWLINE, NOTHING)
+          end
         ##============================================================##
         ## Otherwise we are in the case of a classic line
-        ## key: value or key: without value
+        ## key: value
+        ## or
+        ## key: without value
+        ## - key: value (list)
+        ## - key: without value (list)
         ##============================================================##
         else
           key           = clean_key(key)
