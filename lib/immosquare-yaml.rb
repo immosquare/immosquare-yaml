@@ -282,6 +282,7 @@ module ImmosquareYaml
       weirdblock_indent = nil
       inblock           = false
       weirdblock        = false
+      inlist            = false
       line_index        = 1
 
       ##===================================================================================#
@@ -304,7 +305,6 @@ module ImmosquareYaml
         ## Trimming potential whitespace characters from the end of the line
         ##============================================================##
         current_line = current_line.rstrip
-
 
         ##===================================================================================#
         ## Detecting blank lines to specially handle the last line within a block;
@@ -399,7 +399,7 @@ module ImmosquareYaml
         ## Handling keys without values: if the previous line ends with a colon (:) and is not
         ## followed by a value, we assign 'null' as the value
         ##===================================================================================#
-        if inblock == false && weirdblock == false && lines[-1] && lines[-1].end_with?(":") && last_inblock == false
+        if inblock == false && weirdblock == false && inlist == false && lines[-1] && lines[-1].end_with?(":") && last_inblock == false
           prev_indent = lines[-1][/\A */].size
           lines[-1] += " null" if prev_indent >= indent_level
         end
@@ -410,8 +410,8 @@ module ImmosquareYaml
         ## just a key.. but we have a newline
         ## fr: => ["fr", "\n"]
         ##============================================================##
-        split = inblock || weirdblock ? [current_line] : current_line.strip.split(":", 2)
-        key   = inblock || weirdblock ? nil : split[0].to_s.strip
+        split = inblock || weirdblock || inlist ? [current_line] : current_line.strip.split(":", 2)
+        key   = inblock || weirdblock || inlist ? nil : split[0].to_s.strip
 
         ##===================================================================================#
         ## Line processing based on various conditions such as being inside a block,
@@ -542,93 +542,118 @@ module ImmosquareYaml
     end
 
     ##============================================================##
+    ## " [apple, orange, 'banana']" => [apple, orange, 'banana']
+    ##============================================================##
+    def string_in_array(string)
+      begin
+        string_striped = string.strip
+        string_striped[1..-2].split(/,\s?/) if string_striped.match(/^\[.*\]$/)
+      rescue StandardError
+        nil
+      end
+    end
+
+    ##============================================================##
     ## clean_value Function
     ## Purpose: Sanitize and standardize YAML values
     ## In YAML "inblock" scenarios, there's no need to add quotes
     ## around values as it's inherently handled.
     ## ============================================================ ##
-    def clean_value(value, with_quotes_verif = true)
+    def clean_value(values, with_quotes_verif = true)
       ##============================================================##
-      ## Convert value to string to prevent issues in subsequent operations
+      ## Convert key to array if not
+      ## fruits: [apple, orange, 'banana']
+      ## demo: "demo"
       ##============================================================##
-      value = value.to_s
-
-      ##============================================================##
-      ## Remove newline characters at the end of the value if present.
-      ## This should be done prior to strip operation to handle scenarios
-      ## where the value ends with a space followed by a newline.
-      ###============================================================##
-      value = value[0..-2] if value.end_with?(NEWLINE)
+      is_array = string_in_array(values)
+      values   = is_array.nil? ? [values] : is_array
 
 
-      ##============================================================##
-      ## Clean up the value:
-      ## - Remove tabs, carriage returns, form feeds, and vertical tabs.
-      ## \t: corresponds to a tab
-      ## \r: corresponds to a carriage return
-      ## \f: corresponds to a form feed
-      ## \v: corresponds to a vertical tab
-      ## We keep the \n
-      ##============================================================##
-      value = value.gsub(/[\t\r\f\v]+/, NOTHING)
 
-      ##============================================================##
-      ## Replace multiple spaces with a single space.
-      ##============================================================##
-      value = value.gsub(/ {2,}/, SPACE)
+      values = values.map do |value|
+        ##============================================================##
+        ## Convert value to string to prevent issues in subsequent operations
+        ##============================================================##
+        value = value.to_s
 
-      ##============================================================##
-      ## Trim leading and trailing spaces.
-      ##============================================================##
-      value = value.strip
+        ##============================================================##
+        ## Remove newline characters at the end of the value if present.
+        ## This should be done prior to strip operation to handle scenarios
+        ## where the value ends with a space followed by a newline.
+        ###============================================================##
+        value = value[0..-2] if value.end_with?(NEWLINE)
 
-      ##============================================================##
-      ## Replace special quotes with standard single quotes.
-      ##============================================================##
-      value = value.gsub(WEIRD_QUOTES_REGEX, SIMPLE_QUOTE)
 
-      ##============================================================##
-      ## Remove all quotes surrounding the value if they are present.
-      ## They will be re-added later if necessary.
-      ## """"value"""" => value
-      ##============================================================##
-      value = value[1..-2] while (value.start_with?(DOUBLE_QUOTE) && value.end_with?(DOUBLE_QUOTE)) || (value.start_with?(SIMPLE_QUOTE) && value.end_with?(SIMPLE_QUOTE))
+        ##============================================================##
+        ## Clean up the value:
+        ## - Remove tabs, carriage returns, form feeds, and vertical tabs.
+        ## \t: corresponds to a tab
+        ## \r: corresponds to a carriage return
+        ## \f: corresponds to a form feed
+        ## \v: corresponds to a vertical tab
+        ## We keep the \n
+        ##============================================================##
+        value = value.gsub(/[\t\r\f\v]+/, NOTHING)
 
-      ##============================================================##
-      ## Convert emoji representations such as \U0001F600 to their respective emojis.
-      ##============================================================##
-      value = value.gsub(/\\U([0-9A-Fa-f]{8})/) { [::Regexp.last_match(1).to_i(16)].pack("U*") }
+        ##============================================================##
+        ## Replace multiple spaces with a single space.
+        ##============================================================##
+        value = value.gsub(/ {2,}/, SPACE)
 
-      ##=============================================================##
-      ## Handling cases where the value must be surrounded by quotes
-      ## if:
-      ## management of "" and " ". Not possible to have more spaces
-      ## because we have already removed the double spaces
-      ## else
-      ## value.include?(": ")                   => key: text with: here
-      ## value.include?(" #")                   => key: text with # here
-      ## value.include?(NEWLINE)                => key: Line 1\nLine 2\nLine 3
-      ## value.include?('\n')                   => key: Line 1"\n"Line 2"\n"Line 3
-      ## value.start_with?(*YML_SPECIAL_CHARS)  => key: @text
-      ## value.end_with?(":")                   => key: text:
-      ## RESERVED_KEYS.include?(value)          => key: YES
-      ## value.start_with?(SPACE)               => key: 'text'
-      ## value.end_with?(SPACE)                 => key: text '
-      ##=============================================================##
-      if value.empty?
-        value = "\"#{value}\""
-      elsif with_quotes_verif == true
-        value = "\"#{value}\"" if value.include?(": ") ||
-                                  value.include?(" #") ||
-                                  value.include?(NEWLINE) ||
-                                  value.include?('\n') ||
-                                  value.start_with?(*YML_SPECIAL_CHARS) ||
-                                  value.end_with?(":") ||
-                                  RESERVED_KEYS.include?(value) ||
-                                  value.start_with?(SPACE) ||
-                                  value.end_with?(SPACE)
+        ##============================================================##
+        ## Trim leading and trailing spaces.
+        ##============================================================##
+        value = value.strip
+
+        ##============================================================##
+        ## Replace special quotes with standard single quotes.
+        ##============================================================##
+        value = value.gsub(WEIRD_QUOTES_REGEX, SIMPLE_QUOTE)
+
+        ##============================================================##
+        ## Remove all quotes surrounding the value if they are present.
+        ## They will be re-added later if necessary.
+        ## """"value"""" => value
+        ##============================================================##
+        value = value[1..-2] while (value.start_with?(DOUBLE_QUOTE) && value.end_with?(DOUBLE_QUOTE)) || (value.start_with?(SIMPLE_QUOTE) && value.end_with?(SIMPLE_QUOTE))
+
+        ##============================================================##
+        ## Convert emoji representations such as \U0001F600 to their respective emojis.
+        ##============================================================##
+        value = value.gsub(/\\U([0-9A-Fa-f]{8})/) { [::Regexp.last_match(1).to_i(16)].pack("U*") }
+
+        ##=============================================================##
+        ## Handling cases where the value must be surrounded by quotes
+        ## if:
+        ## management of "" and " ". Not possible to have more spaces
+        ## because we have already removed the double spaces
+        ## else
+        ## value.include?(": ")                   => key: text with: here
+        ## value.include?(" #")                   => key: text with # here
+        ## value.include?(NEWLINE)                => key: Line 1\nLine 2\nLine 3
+        ## value.include?('\n')                   => key: Line 1"\n"Line 2"\n"Line 3
+        ## value.start_with?(*YML_SPECIAL_CHARS)  => key: @text
+        ## value.end_with?(":")                   => key: text:
+        ## RESERVED_KEYS.include?(value)          => key: YES
+        ## value.start_with?(SPACE)               => key: 'text'
+        ## value.end_with?(SPACE)                 => key: text '
+        ##=============================================================##
+        if value.empty?
+          value = "\"#{value}\""
+        elsif with_quotes_verif == true
+          value = "\"#{value}\"" if value.include?(": ") ||
+                                    value.include?(" #") ||
+                                    value.include?(NEWLINE) ||
+                                    value.include?('\n') ||
+                                    value.start_with?(*YML_SPECIAL_CHARS) ||
+                                    value.end_with?(":") ||
+                                    (is_array ? false : RESERVED_KEYS.include?(value)) ||
+                                    value.start_with?(SPACE) ||
+                                    value.end_with?(SPACE)
+        end
+        value
       end
-      value
+      is_array ? "[#{values.join(", ")}]" : values.first
     end
 
     ##============================================================##
