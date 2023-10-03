@@ -1,4 +1,12 @@
 en:
+  day_names:
+    - Sunday
+    - Monday
+    - Tuesday
+    - Wednesday
+    - Thursday
+    - Friday
+    - Saturday
   demo: "demo" 
   yes: "This is not a boolean"
   no: "Neither is this"
