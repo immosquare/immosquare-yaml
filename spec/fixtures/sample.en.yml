@@ -1,4 +1,15 @@
 en:
+  fruits: [apple, orange, banana]
+  voitures:
+    - marque: Toyota
+      modèle: Corolla
+    - marque: Honda
+      modèle: Civic
+  mix:
+    - "chaine"
+    - 123
+    - key: value
+  liste_vide: []
   day_names:
     - Sunday
     - Monday
@@ -7,6 +18,11 @@ en:
     - Thursday
     - Friday
     - Saturday
+  personnes:
+  - nom: Alice
+    age: 30
+  - nom: Bob
+    age: 25
   demo: "demo" 
   yes: "This is not a boolean"
   no: "Neither is this"
