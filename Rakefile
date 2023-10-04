@@ -29,6 +29,51 @@ namespace :immosquare_yaml do
         lines.map {|line| line[initial_indentation..] }
       end
 
+      def strip_recursive(data)
+        if data.is_a?(Array)
+          data.map {|item| strip_recursive(item) }
+        else
+          data.strip
+        end
+      end
+
+      def array_to_hash(data)
+        if data.is_a?(Array)
+          # Check if it's a simple key-value array
+          if data.all? {|item| item.is_a?(String) } && data.none? {|item| item.include?(":") }
+            data.size == 1 ? data.join : data
+          elsif data.all? {|item| item.is_a?(String) }
+            hash = {}
+            data.each do |item|
+              key, value = item.split(": ", 2)
+              hash[key.chomp(":")] = value.nil? ? nil : (value.empty? ? nil : value)
+            end
+            hash
+          # If the array contains mixed strings and arrays
+          elsif data.any? {|item| item.is_a?(Array) } && data.any? {|item| item.is_a?(String) }
+            hash = {}
+            data.each_with_index do |item, index|
+              if item.is_a?(String) && data[index + 1].is_a?(Array)
+                key, = item.split(": ", 2)
+                hash[key.chomp(":")] = array_to_hash(data[index + 1])
+              elsif item.is_a?(String)
+                key, value = item.split(": ", 2)
+                hash[key.chomp(":")] = value.nil? ? nil : (value.empty? ? nil : value)
+              end
+            end
+            hash
+          # If the array contains only arrays
+          elsif data.all? {|item| item.is_a?(Array) }
+            data.map {|item| array_to_hash(item) }
+          end
+        elsif data.is_a?(String) && data.include?(":")
+          key, value = data.split(": ", 2)
+          {key.chomp(":") => value || nil}
+        else
+          data
+        end
+      end
+
       def clean_inlist_data(lines)
         return lines.map {|l| l[1..].strip } if lines.all? {|l| l.start_with?("-") }
 
@@ -44,36 +89,26 @@ namespace :immosquare_yaml do
         end
 
 
-
         results.map do |group|
-          list_index = nil
-          new_lines  = nil
-          group.each.with_index do |line, index|
-            if line.lstrip.start_with?("-") && list_index.nil?
-              list_index = index
-              new_lines = normalize_indentation(group[index..]) if !list_index.nil?
-            end
+          sublist_start = group.index {|line| line.lstrip.start_with?("-") }
+
+          if sublist_start
+            pre_sublist = group[0...sublist_start]
+            sublist     = clean_inlist_data(normalize_indentation(group[sublist_start..]))
+            pre_sublist + [sublist]
+          else
+            group
           end
-          list_index.nil? ? group : group[0..list_index - 1] + [clean_inlist_data(new_lines)]
         end
       end
 
-      lines = [
-        "- marque: Toyota2",
-        "  modèle: Corolla",
-        "  hello: null",
-        "- marque: Honda",
-        "  modèle: null",
-        "- toto:",
-        "  - tata: ici",
-        "    pipi:",
-        "      - hello",
-        "      - barbie:"
-      ]
+      lines = File.readlines("spec/fixtures/test2.yml")
 
       tata = clean_inlist_data(normalize_indentation(lines))
+      tata = strip_recursive(tata)
+      tata = array_to_hash(tata)
+      puts YAML.load_file("spec/fixtures/test2.yml").inspect
       puts tata.inspect
-      # puts array_to_hash(tata).inspect
     end
 
 
