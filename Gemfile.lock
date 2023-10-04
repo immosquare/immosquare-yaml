@@ -3,7 +3,7 @@ PATH
   specs:
     immosquare-yaml (0.1.17)
       httparty (~> 0)
-      immosquare-extensions (~> 0, >= 0.1.5)
+      immosquare-extensions (~> 0, >= 0.1.11)
       iso-639 (~> 0)
 
 GEM
