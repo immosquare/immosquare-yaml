@@ -23,45 +23,88 @@ namespace :immosquare_yaml do
       end
     end
 
-
-
     task :toto do
       def normalize_indentation(lines)
         initial_indentation = lines.first.match(/^(\s*)/)[1].length
         lines.map {|line| line[initial_indentation..] }
       end
 
-      def clean_inlist_data(lines)
-        normalized_lines  = normalize_indentation(lines)
-        result            = []
-        last_indent       = nil
-        current_indent    = nil
-        indent_size       = 2
+      def toto(lines)
+        return lines.map {|l| l[1..].strip } if lines.all? {|l| l.start_with?("-") }
 
-        normalized_lines.each do |line|
-          last_indent    = current_indent
-          current_indent = indent_level = line[/\A */].size
-
+        index = -1
+        results = []
+        lines.each do |line|
           if line.start_with?("-")
-            stripped_line = line[1..].strip
-            key, value    = stripped_line.split(":", 2)
-            result << {key => value}
-          elsif current_indent - indent_size == last_indent
-            stripped_line = line.strip
-            key, value    = stripped_line.split(":", 2)
-            result.last.merge!({key => value})
-          elsif current_indent - (2 * indent_size) == last_indent
-            last                  = result.last
-            last[last.keys.first] = clean_inlist_data([line])
-          else
-            puts(line)
+            index += 1
+            line = line[1..].lstrip
           end
+          results[index] = [] if results[index].nil?
+          results[index] << line
         end
-        result
+
+
+
+        results.map do |group|
+          tamere = nil
+          tonpere = nil
+          group.each.with_index do |line, index|
+            if line.lstrip.start_with?("-") && tamere.nil?
+              tamere  = index
+              tonpere = normalize_indentation(group[index..]) if !tamere.nil?
+            end
+          end
+          tamere.nil? ? group : group[0..tamere - 1] + [toto(tonpere)]
+        end
       end
 
-      toto = ["    - marque: Toyota\n", "      modèle: Corolla\n", "    - marque: Honda\n", "      modèle: null\n", "    - toto:\n", "        - tata: ici\n", "          pipi: la\n"]
-      puts clean_inlist_data(toto).inspect
+      def array_to_hash(arr)
+        hash = {}
+
+        arr.each do |item|
+          if item.is_a?(String)
+            key, value = item.split(":", 2).map(&:strip) # divisez la chaîne en deux parties basées sur ':'
+            value = nil if value == "null"
+            hash[key] = value
+          elsif item.is_a?(Array)
+            item.each do |key_val|
+              if key_val.is_a?(String)
+                key, value = key_val.split(":", 2).map(&:strip)
+                value = nil if value == "null"
+                hash[key] = value
+              elsif key_val.is_a?(Array)
+                key, nested_arr = key_val
+                hash[key.strip] = array_to_hash(nested_arr)
+              end
+            end
+          end
+        end
+
+        hash
+      end
+
+
+
+      lines = [
+        "- marque: Toyota2",
+        "  modèle: Corolla",
+        "  hello: null",
+        "- marque: Honda",
+        "  modèle: null",
+        "- toto:",
+        "  - tata: ici",
+        "    pipi:",
+        "      - hello",
+        "      - barbie:",
+        "          - hello",
+        "          - robot"
+
+      ]
+
+
+      tata = toto(normalize_indentation(lines))
+      puts tata.inspect
+      puts array_to_hash(tata).inspect
     end
 
 
