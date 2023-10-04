@@ -16,9 +16,6 @@ module ImmosquareYaml
 
   class << self
 
-
-
-
     ##===========================================================================##
     ## Gem configuration
     ##===========================================================================##
@@ -151,6 +148,7 @@ module ImmosquareYaml
         ##===========================================================================##
         File.write(file_path, original_content) if !original_content.nil?
         puts(e.message)
+        puts(e.backtrace)
         false
       end
     end
@@ -662,6 +660,49 @@ module ImmosquareYaml
       is_array.instance_of?(String) ? values.first : "[#{values.join(", ")}]"
     end
 
+    def normalize_indentation(lines)
+      initial_indentation = lines.first.match(/^(\s*)/)[1].length
+      lines.map {|line| line[initial_indentation..] }
+    end
+
+    def clean_inlist_data(lines)
+      normalized_lines   = normalize_indentation(lines)
+      result             = []
+      result_temp        = nil
+      result_temp_indent = nil
+      last_indent_array  = nil
+      current_indent     = nil
+
+      normalized_lines.each.with_index do |line, index|
+        current_indent = indent_level = line[/\A */].size
+
+
+        if line.start_with?("-")
+          last_indent_array = current_indent
+          stripped_line     = line[1..].strip
+          key, value        = stripped_line.split(":", 2)
+          result << (value.nil? ? key : {key => value})
+        elsif current_indent - INDENT_SIZE == last_indent_array
+          stripped_line = line.strip
+          key, value    = stripped_line.split(":", 2)
+          result.last.merge!({key => value.strip})
+        elsif line.lstrip.start_with?("-")
+          result_temp        = [line]
+          result_temp_indent = current_indent
+        else
+          result_temp << line
+        end
+
+        if !result_temp.nil? && (index + 1 == normalized_lines.size || current_indent < result_temp_indent)
+          last = result.last
+          last[last.keys.first] = clean_inlist_data(result_temp)
+          result_temp         = nil
+          result_temp_indent  = nil
+        end
+      end
+      result
+    end
+
     ##============================================================##
     ## parse_xml Function
     ## Purpose: Parse an XML file into a nested hash representation.
@@ -703,7 +744,6 @@ module ImmosquareYaml
         inblock = nil if !inblock.nil? && !blank_line && indent_level <= inblock
 
 
-
         ##============================================================##
         ## inlist Enter
         ##============================================================##
@@ -719,7 +759,7 @@ module ImmosquareYaml
           current_key         = last_keys.last
           parent_keys         = last_keys[0..-2]
           result              = parent_keys.reduce(nested_hash) {|hash, k| hash[k] }
-          result[current_key] = inlist_data
+          result[current_key] = clean_inlist_data(inlist_data)
           inlist              = nil
           inlist_data         = []
         end
@@ -778,7 +818,7 @@ module ImmosquareYaml
       ## |4- without newline and indentation of 4
       ##============================================================##
       deep_transform_values(nested_hash) do |value|
-        if value.is_a?(Array) && !value[0].nil? && value[0].start_with?(CUSTOM_SEPARATOR) && value[0].end_with?(CUSTOM_SEPARATOR)
+        if value.is_a?(Array) && !value[0].nil? && value[0].instance_of?(String) && value[0].start_with?(CUSTOM_SEPARATOR) && value[0].end_with?(CUSTOM_SEPARATOR)
           style_type   = value[0].gsub(CUSTOM_SEPARATOR, NOTHING)
           indent_supp  = style_type.scan(/\d+/).first&.to_i || 0
           indent_supp  = [indent_supp - INDENT_SIZE, 0].max
