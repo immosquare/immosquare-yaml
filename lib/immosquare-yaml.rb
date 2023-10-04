@@ -554,9 +554,9 @@ module ImmosquareYaml
     def string_in_array(string)
       begin
         string_striped = string.strip
-        string_striped[1..-2].split(/,\s?/) if string_striped.match(/^\[.*\]$/)
+        string_striped.match(/^\[.*\]$/) ? string_striped[1..-2].split(/,\s?/) : string
       rescue StandardError
-        nil
+        string
       end
     end
 
@@ -573,8 +573,7 @@ module ImmosquareYaml
       ## demo: "demo"
       ##============================================================##
       is_array = string_in_array(values)
-      values   = is_array.nil? ? [values] : is_array
-
+      values   = is_array.instance_of?(String) ? [values] : is_array
 
 
       values = values.map do |value|
@@ -660,7 +659,7 @@ module ImmosquareYaml
         end
         value
       end
-      is_array ? "[#{values.join(", ")}]" : values.first
+      is_array.instance_of?(String) ? values.first : "[#{values.join(", ")}]"
     end
 
     ##============================================================##
@@ -673,7 +672,10 @@ module ImmosquareYaml
     def parse_xml(file_path)
       nested_hash = {}
       inblock     = nil
+      inlist      = nil
+      inlist_data = nil
       last_keys   = []
+
 
       ##============================================================##
       ## We go over each line of the file to create a hash.
@@ -701,10 +703,32 @@ module ImmosquareYaml
         inblock = nil if !inblock.nil? && !blank_line && indent_level <= inblock
 
 
+
+        ##============================================================##
+        ## inlist Enter
+        ##============================================================##
+        if inlist.nil? && !blank_line && line.strip.start_with?("-")
+          inlist      = indent_level
+          inlist_data = []
+        end
+
+        ##============================================================##
+        ## inlist Exit
+        ##============================================================##
+        if !inlist.nil? && !blank_line && indent_level < inlist
+          current_key         = last_keys.last
+          parent_keys         = last_keys[0..-2]
+          result              = parent_keys.reduce(nested_hash) {|hash, k| hash[k] }
+          result[current_key] = inlist_data
+          inlist              = nil
+          inlist_data         = []
+        end
+
         ##============================================================##
         ## Set the key level based on indentation
         ##============================================================##
         last_keys = last_keys[0, (blank_line ? inblock + INDENT_SIZE : indent_level) / INDENT_SIZE]
+
 
         ##============================================================##
         ## If inside a multi-line block, append the line to the current key's value
@@ -715,6 +739,11 @@ module ImmosquareYaml
           result                = parent_keys.reduce(nested_hash) {|hash, k| hash[k] }
           result[current_key][1] << line.strip
         ##============================================================##
+        ## Handle list declarations.
+        ##============================================================##
+        elsif !inlist.nil?
+          inlist_data << line
+        ##============================================================##
         ## Handle multi-line key declarations.
         ## We no longer have the >
         ## because it is transformed in the clean_xml into |
@@ -723,7 +752,7 @@ module ImmosquareYaml
           inblock     = indent_level
           block_type  = line.gsub("#{key}:", NOTHING).strip
           result      = last_keys.reduce(nested_hash) {|hash, k| hash[k] }
-          result[key] = [block_type, []]
+          result[key] = ["#{CUSTOM_SEPARATOR}#{block_type}#{CUSTOM_SEPARATOR}", []]
           last_keys << key
         ##============================================================##
         ## Handle regular key-value pair declarations
@@ -735,10 +764,11 @@ module ImmosquareYaml
             result[key] = {}
             last_keys << key
           else
-            result[key] = value.strip == "null" ? nil : value
+            result[key] = value.strip == "null" ? nil : string_in_array(value)
           end
         end
       end
+
 
       ##============================================================##
       ## We go over each value then we process if it is a has
@@ -748,14 +778,13 @@ module ImmosquareYaml
       ## |4- without newline and indentation of 4
       ##============================================================##
       deep_transform_values(nested_hash) do |value|
-        if value.is_a?(Array)
-          style_type   = value[0]
+        if value.is_a?(Array) && !value[0].nil? && value[0].start_with?(CUSTOM_SEPARATOR) && value[0].end_with?(CUSTOM_SEPARATOR)
+          style_type   = value[0].gsub(CUSTOM_SEPARATOR, NOTHING)
           indent_supp  = style_type.scan(/\d+/).first&.to_i || 0
           indent_supp  = [indent_supp - INDENT_SIZE, 0].max
           value[1]     = value[1].map {|l| "#{SPACE * indent_supp}#{l}" }
           text         = value[1].join(NEWLINE)
           modifier     = style_type[-1]
-
           case modifier
           when "+"
             text << NEWLINE unless text.end_with?(NEWLINE)

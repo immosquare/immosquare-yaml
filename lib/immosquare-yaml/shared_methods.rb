@@ -7,6 +7,7 @@ module ImmosquareYaml
     SIMPLE_QUOTE        = "'".freeze
     DOUBLE_QUOTE        = '"'.freeze
     DOUBLE_SIMPLE_QUOTE = "''".freeze
+    CUSTOM_SEPARATOR    = "_#_#_".freeze
     WEIRD_QUOTES_REGEX  = /‘|’|“|”|‛|‚|„|‟|#{Regexp.quote(DOUBLE_SIMPLE_QUOTE)}/.freeze
     YML_SPECIAL_CHARS   = ["-", "`", "{", "}", "|", "[", "]", ">", ":", "\"", "'", "*", "=", "%", ",", "!", "?", "&", "#", "@"].freeze
     RESERVED_KEYS       = [
