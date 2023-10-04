@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.1.17] - 2023-09-30
+
+- Manage yml lists
+
 ## [0.1.16] - 2023-09-30
 
 - bump immosquare-extensions
@@ -18,7 +22,7 @@
 
 ## [0.1.12] - 2023-09-29
 
-- Improve normalize_last_line 
+- Improve normalize_last_line
 
 ## [0.1.11] - 2023-09-29
 
@@ -59,11 +63,13 @@
 ## [0.1.2] - 2023-09-24
 
 - Add Tranlate Module
+
 - Add Tasks for rails App
 
 ## [0.1.1] - 2023-09-21
 
 - Added tasks for improved development workflow.
+
 - Introduced RSpec tests to enhance code reliability and maintainability.
 
 ## [0.1.0] - 2023-09-21
