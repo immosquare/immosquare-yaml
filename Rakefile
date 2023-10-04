@@ -29,10 +29,10 @@ namespace :immosquare_yaml do
         lines.map {|line| line[initial_indentation..] }
       end
 
-      def toto(lines)
+      def clean_inlist_data(lines)
         return lines.map {|l| l[1..].strip } if lines.all? {|l| l.start_with?("-") }
 
-        index = -1
+        index   = -1
         results = []
         lines.each do |line|
           if line.start_with?("-")
@@ -46,44 +46,17 @@ namespace :immosquare_yaml do
 
 
         results.map do |group|
-          tamere = nil
-          tonpere = nil
+          list_index = nil
+          new_lines  = nil
           group.each.with_index do |line, index|
-            if line.lstrip.start_with?("-") && tamere.nil?
-              tamere  = index
-              tonpere = normalize_indentation(group[index..]) if !tamere.nil?
+            if line.lstrip.start_with?("-") && list_index.nil?
+              list_index = index
+              new_lines = normalize_indentation(group[index..]) if !list_index.nil?
             end
           end
-          tamere.nil? ? group : group[0..tamere - 1] + [toto(tonpere)]
+          list_index.nil? ? group : group[0..list_index - 1] + [clean_inlist_data(new_lines)]
         end
       end
-
-      def array_to_hash(arr)
-        hash = {}
-
-        arr.each do |item|
-          if item.is_a?(String)
-            key, value = item.split(":", 2).map(&:strip) # divisez la chaîne en deux parties basées sur ':'
-            value = nil if value == "null"
-            hash[key] = value
-          elsif item.is_a?(Array)
-            item.each do |key_val|
-              if key_val.is_a?(String)
-                key, value = key_val.split(":", 2).map(&:strip)
-                value = nil if value == "null"
-                hash[key] = value
-              elsif key_val.is_a?(Array)
-                key, nested_arr = key_val
-                hash[key.strip] = array_to_hash(nested_arr)
-              end
-            end
-          end
-        end
-
-        hash
-      end
-
-
 
       lines = [
         "- marque: Toyota2",
@@ -95,16 +68,12 @@ namespace :immosquare_yaml do
         "  - tata: ici",
         "    pipi:",
         "      - hello",
-        "      - barbie:",
-        "          - hello",
-        "          - robot"
-
+        "      - barbie:"
       ]
 
-
-      tata = toto(normalize_indentation(lines))
+      tata = clean_inlist_data(normalize_indentation(lines))
       puts tata.inspect
-      puts array_to_hash(tata).inspect
+      # puts array_to_hash(tata).inspect
     end
 
 

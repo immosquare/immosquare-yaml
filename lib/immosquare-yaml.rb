@@ -660,47 +660,43 @@ module ImmosquareYaml
       is_array.instance_of?(String) ? values.first : "[#{values.join(", ")}]"
     end
 
+    ##============================================================##
+    ## Normalize indentation for array values without intent
+    ## for the first level.
+    ##============================================================##
     def normalize_indentation(lines)
       initial_indentation = lines.first.match(/^(\s*)/)[1].length
-      lines.map {|line| line[initial_indentation..] }
+      lines.map do |line|
+        line[initial_indentation..(line.end_with?(NEWLINE) ? -2 : -1)]
+      end
     end
 
     def clean_inlist_data(lines)
-      normalized_lines   = normalize_indentation(lines)
-      result             = []
-      result_temp        = nil
-      result_temp_indent = nil
-      last_indent_array  = nil
-      current_indent     = nil
+      return lines.map {|l| l[1..].strip } if lines.all? {|l| l.start_with?("-") }
 
-      normalized_lines.each.with_index do |line, index|
-        current_indent = indent_level = line[/\A */].size
-
-
+      index   = -1
+      results = []
+      lines.each do |line|
         if line.start_with?("-")
-          last_indent_array = current_indent
-          stripped_line     = line[1..].strip
-          key, value        = stripped_line.split(":", 2)
-          result << (value.nil? ? key : {key => value})
-        elsif current_indent - INDENT_SIZE == last_indent_array
-          stripped_line = line.strip
-          key, value    = stripped_line.split(":", 2)
-          result.last.merge!({key => value.strip})
-        elsif line.lstrip.start_with?("-")
-          result_temp        = [line]
-          result_temp_indent = current_indent
-        else
-          result_temp << line
+          index += 1
+          line = line[1..].lstrip
         end
-
-        if !result_temp.nil? && (index + 1 == normalized_lines.size || current_indent < result_temp_indent)
-          last = result.last
-          last[last.keys.first] = clean_inlist_data(result_temp)
-          result_temp         = nil
-          result_temp_indent  = nil
-        end
+        results[index] = [] if results[index].nil?
+        results[index] << line
       end
-      result
+
+
+      results.map do |group|
+        list_index  = nil
+        new_lines   = nil
+        group.each.with_index do |line, index|
+          if line.lstrip.start_with?("-") && list_index.nil?
+            list_index = index
+            new_lines = normalize_indentation(group[index..]) if !list_index.nil?
+          end
+        end
+        list_index.nil? ? group : group[0..list_index - 1] + [clean_inlist_data(new_lines)]
+      end
     end
 
     ##============================================================##
@@ -759,7 +755,7 @@ module ImmosquareYaml
           current_key         = last_keys.last
           parent_keys         = last_keys[0..-2]
           result              = parent_keys.reduce(nested_hash) {|hash, k| hash[k] }
-          result[current_key] = clean_inlist_data(inlist_data)
+          result[current_key] = clean_inlist_data(normalize_indentation(inlist_data))
           inlist              = nil
           inlist_data         = []
         end
