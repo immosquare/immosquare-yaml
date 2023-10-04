@@ -1,4 +1,5 @@
 require          "English"
+require          "psych"
 require          "immosquare-extensions"
 require_relative "immosquare-yaml/configuration"
 require_relative "immosquare-yaml/shared_methods"
@@ -671,34 +672,6 @@ module ImmosquareYaml
       end
     end
 
-    def clean_inlist_data(lines)
-      return lines.map {|l| l[1..].strip } if lines.all? {|l| l.start_with?("-") }
-
-      index   = -1
-      results = []
-      lines.each do |line|
-        if line.start_with?("-")
-          index += 1
-          line = line[1..].lstrip
-        end
-        results[index] = [] if results[index].nil?
-        results[index] << line
-      end
-
-
-      results.map do |group|
-        list_index  = nil
-        new_lines   = nil
-        group.each.with_index do |line, index|
-          if line.lstrip.start_with?("-") && list_index.nil?
-            list_index = index
-            new_lines = normalize_indentation(group[index..]) if !list_index.nil?
-          end
-        end
-        list_index.nil? ? group : group[0..list_index - 1] + [clean_inlist_data(new_lines)]
-      end
-    end
-
     ##============================================================##
     ## parse_xml Function
     ## Purpose: Parse an XML file into a nested hash representation.
@@ -750,12 +723,14 @@ module ImmosquareYaml
 
         ##============================================================##
         ## inlist Exit
+        ## We use Pscyh to parse the yaml of the list content
         ##============================================================##
         if !inlist.nil? && !blank_line && indent_level < inlist
+          yaml                = normalize_indentation(inlist_data).join(NEWLINE)
           current_key         = last_keys.last
           parent_keys         = last_keys[0..-2]
           result              = parent_keys.reduce(nested_hash) {|hash, k| hash[k] }
-          result[current_key] = clean_inlist_data(normalize_indentation(inlist_data))
+          result[current_key] = Psych.safe_load(yaml, :permitted_classes => [Date])
           inlist              = nil
           inlist_data         = []
         end

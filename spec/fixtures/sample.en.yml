@@ -24,6 +24,43 @@ en:
       age: 30
     - nom: Bob
       age: 
+  full:
+    - brand: Toyota
+      model: Corolla
+      features:
+        - air_conditioning
+        - GPS
+        - seats:
+            material: leather
+            color: black
+    - brand: Honda
+      model: Accord
+      features: 
+        - GPS
+        - radio:
+            type: digital
+            preset_stations:
+              - France Info
+              - Classic FM
+    - motorcycle:
+        brand: Yamaha
+        type: sport
+        details: 
+          top_speed: 320 km/h
+          color: blue
+    - bicycles:
+      - type: MTB
+        color: red
+        equipment: 
+          - helmet
+          - gloves
+      - type: road
+        color: white
+    - comments:
+      - "Very good vehicle"
+      - "Comfortable"
+      - "To be avoided"
+    - purchase_date: "2022-01-15"
   demo: "demo" 
   yes: "This is not a boolean"
   no: "Neither is this"
