@@ -214,6 +214,17 @@ module ImmosquareYaml
         when Hash
           lines << line
           dump(value, lines, indent + INDENT_SIZE)
+        when Array
+          formated_value = Psych.dump(value)
+          if formated_value == "--- []\n"
+            lines << "#{line} []"
+          else
+            formated_value = formated_value.gsub("---#{NEWLINE}", NOTHING)
+              .split(NEWLINE).map {|l| "#{SPACE * (INDENT_SIZE + indent)}#{l}" }
+              .join(NEWLINE)
+            lines << line
+            lines << formated_value
+          end
         end
       end
 
