@@ -727,7 +727,7 @@ module ImmosquareYaml
         ##============================================================##
         ## inlist Enter
         ##============================================================##
-        if inlist.nil? && !blank_line && line.strip.start_with?("-")
+        if inlist.nil? && !blank_line && line.strip.start_with?("-") && inblock.nil?
           inlist      = indent_level
           inlist_data = []
         end
