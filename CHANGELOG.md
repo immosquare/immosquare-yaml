@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.1.18] - 2023-10-10
+
+- Fixbug with yml lists
+
 ## [0.1.17] - 2023-09-30
 
 - Manage yml lists
