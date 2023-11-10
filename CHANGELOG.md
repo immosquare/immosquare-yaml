@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.1.19] - 2023-11-10
+
+- Add new model gpt-4-1106-preview
+
 ## [0.1.18] - 2023-10-10
 
 - Fixbug with yml lists

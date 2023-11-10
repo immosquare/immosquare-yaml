@@ -174,10 +174,11 @@ module ImmosquareYaml
         ##============================================================##
         model_name = ImmosquareYaml.configuration.openai_model
         models     = [
-          {:name => "gpt-3.5-turbo",      :tokens => 4097,    :input => 0.0015, :output => 0.002, :group_size => 75},
-          {:name => "gpt-3.5-turbo-16k",  :tokens => 16_385,  :input => 0.0030, :output => 0.004, :group_size => 300},
-          {:name => "gpt-4",              :tokens => 8192,    :input => 0.0300, :output => 0.060, :group_size => 150},
-          {:name => "gpt-4-32k",          :tokens => 32_769,  :input => 0.0600, :output => 0.120, :group_size => 600}
+          {:name => "gpt-3.5-turbo",      :tokens => 4097,      :input => 0.0015, :output => 0.002, :group_size => 75},
+          {:name => "gpt-3.5-turbo-16k",  :tokens => 16_385,    :input => 0.0030, :output => 0.004, :group_size => 300},
+          {:name => "gpt-4",              :tokens => 8192,      :input => 0.0300, :output => 0.060, :group_size => 150},
+          {:name => "gpt-4-32k",          :tokens => 32_769,    :input => 0.0600, :output => 0.120, :group_size => 600},
+          {:name => "gpt-4-1106-preview", :tokens => 128_000,   :input => 0.0100, :output => 0.030, :group_size => 2400}
         ]
         model = models.find {|m| m[:name] == model_name }
         model = models.find {|m| m[:name] == "gpt-3.5-turbo-16k" } if model.nil?
