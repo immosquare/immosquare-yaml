@@ -240,48 +240,7 @@ module ImmosquareYaml
 
     private
 
-    ##===========================================================================##
-    ## This method ensures the file ends with a single newline, facilitating
-    ## cleaner multi-line blocks. It operates by reading all lines of the file,
-    ## removing any empty lines at the end, and then appending a newline.
-    ## This guarantees the presence of a newline at the end, and also prevents
-    ## multiple newlines from being present at the end.
-    ##
-    ## Params:
-    ## +file_path+:: The path to the file to be normalized.
-    ##
-    ## Returns:
-    ## The total number of lines in the normalized file.
-    ##===========================================================================##
-    def normalize_last_line(file_path)
-      end_of_line = $INPUT_RECORD_SEPARATOR
-      ##============================================================##
-      ## Read all lines from the file
-      ## https://gist.github.com/guilhermesimoes/d69e547884e556c3dc95
-      ##============================================================##
-      content = File.read(file_path)
 
-
-      ##===========================================================================##
-      ## Remove all trailing empty lines at the end of the file
-      ##===========================================================================##
-      content.gsub!(/#{Regexp.escape(end_of_line)}+\z/, "")
-
-      ##===========================================================================##
-      ## Append an EOL at the end to maintain the file structure
-      ##===========================================================================##
-      content << end_of_line
-
-      ##===========================================================================##
-      ## Write the modified lines back to the file
-      ##===========================================================================##
-      File.write(file_path, content)
-
-      ##===========================================================================##
-      ## Return the total number of lines in the modified file
-      ##===========================================================================##
-      content.lines.size
-    end
 
     ##============================================================##
     ## Deeply cleans the specified YAML file
@@ -299,7 +258,7 @@ module ImmosquareYaml
       ## This also allows us to get the total number of lines in the file,
       ## helping us to determine when we are processing the last line
       ###===================================================================================#
-      line_count = normalize_last_line(file_path)
+      line_count = File.normalize_last_line(file_path)
 
 
       File.foreach(file_path) do |current_line|
@@ -802,7 +761,7 @@ module ImmosquareYaml
       deep_transform_values(nested_hash) do |value|
         if value.is_a?(Array) && !value[0].nil? && value[0].instance_of?(String) && value[0].start_with?(CUSTOM_SEPARATOR) && value[0].end_with?(CUSTOM_SEPARATOR)
           style_type   = value[0].gsub(CUSTOM_SEPARATOR, NOTHING)
-          indent_supp  = style_type.scan(/\d+/).first&.to_i || 0
+          indent_supp  = style_type.scan(/\d+/).first.to_i
           indent_supp  = [indent_supp - INDENT_SIZE, 0].max
           value[1]     = value[1].map {|l| "#{SPACE * indent_supp}#{l}" }
           text         = value[1].join(NEWLINE)

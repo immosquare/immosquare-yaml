@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.1.20] - 2024-02-05
+
+- File.normalize_last_line from immosquare-exentension gem
+
 ## [0.1.19] - 2023-11-10
 
 - Add new model gpt-4-1106-preview
