@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.1.22] - 2024-03-04
+
+- Improve Translate Module for complexe Yaml files
+
 ## [0.1.21] - 2024-02-06
 
 - bump immosquare-exentension gem version

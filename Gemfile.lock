@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    immosquare-yaml (0.1.21)
+    immosquare-yaml (0.1.22)
       httparty (~> 0)
       immosquare-extensions (~> 0, >= 0.1.14)
       iso-639 (~> 0)
@@ -40,8 +40,7 @@ GEM
     connection_pool (2.4.1)
     crass (1.0.6)
     diff-lcs (1.5.1)
-    drb (2.2.0)
-      ruby2_keywords
+    drb (2.2.1)
     erb_lint (0.5.0)
       activesupport
       better_html (>= 2.0.1)
@@ -82,7 +81,6 @@ GEM
     parser (3.3.0.5)
       ast (~> 2.4.1)
       racc
-    prism (0.24.0)
     racc (1.7.3)
     rails-dom-testing (2.2.0)
       activesupport (>= 5.0.0)
@@ -119,11 +117,9 @@ GEM
       rubocop-ast (>= 1.30.0, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 2.4.0, < 3.0)
-    rubocop-ast (1.31.0)
+    rubocop-ast (1.31.1)
       parser (>= 3.3.0.4)
-      prism (>= 0.24.0)
     ruby-progressbar (1.13.0)
-    ruby2_keywords (0.0.5)
     smart_properties (1.17.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
