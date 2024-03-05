@@ -92,8 +92,12 @@ module ImmosquareYaml
           ##============================================================##
           ## Then we have to reformat the output yml file
           ##============================================================##
-          final_array = translated_array.map {|k, _from, to| [k, to] }
-          final_hash  = translatable_hash(final_array)
+          final_array = translated_array.map do |k, _from, to|
+            parsed_to = to.start_with?("[") && to.end_with?("]") ? JSON.parse(to) : to
+            [k, parsed_to]
+          end
+          final_hash = translatable_hash(final_array)
+
 
           ##============================================================##
           ## We write the output file and clean it
@@ -136,7 +140,7 @@ module ImmosquareYaml
           end
         else
           r2 = options[:format] == "string" ? key.split(":").join(".") : key.split(":")
-          result << (options[:keys_only] ? r2 : [r2, hash])
+          result << (options[:keys_only] ? r2 : [r2, hash.is_a?(Array) ? hash.to_json : hash])
         end
         result
       end
@@ -181,7 +185,7 @@ module ImmosquareYaml
           {:name => "gpt-4-1106-preview", :tokens => 128_000,   :input => 0.0100, :output => 0.030, :group_size => 2400}
         ]
         model = models.find {|m| m[:name] == model_name }
-        model = models.find {|m| m[:name] == "gpt-3.5-turbo-16k" } if model.nil?
+        model = models.find {|m| m[:name] == "gpt-4-1106-preview" } if model.nil?
 
         ##============================================================##
         ## Manage blank values
@@ -229,12 +233,16 @@ module ImmosquareYaml
         prompt_system = "You are a translation tool from #{from_iso} to #{to_iso}\n" \
                         "The input is an array of pairs, where each pair contains an index and a string to translate, formatted as [index, string_to_translate]\n" \
                         "Your task is to create an output ARRAY where each element is a pair consisting of the index and the translated string, formatted as [index, 'string_translated']\n" \
-                        "\nRules to respect:\n" \
+                        "If a string_to_translate starts with [ and ends with ], it is considered a special string that should be treated as a JSON object. Otherwise, it's a normal string.\n" \
+                        "\nRules to respect for JSON objects:\n" \
+                        "- You need to translate ONLY the values of the JSON object, not the keys. Do not change anything in the format, just translate the values.\n" \
+                        "- Respect all following rules for normal strings to translate the values\n" \
+                        "\nRules to respect for normal strings:\n" \
                         "- Do not escape apostrophes in translated strings; leave them as they are.\n" \
                         "- Special characters, except apostrophes, that need to be escaped in translated strings should be escaped using a single backslash (\\), not double (\\\\).\n" \
                         "- If a string cannot be translated use the string '#{cant_be_translated}' translated as the translation value witouth quote (simple or double) quote, just the string\n" \
                         "- If you dont know the correct translatation use the #{cant_be_translated} strategy of the preceding point\n" \
-                        "- Use only doubles quotes (\") to enclose translated strings and avoid using single quotes (').\n" \
+                        "- Use only double quotes (\") to enclose translated strings and avoid using single quotes (').\n" \
                         "- Your output must ONLY be an array with the same number of pairs as the input, without any additional text or explanation. DO NOT COMMENT!\n" \
                         "- You need to check that the globle array is correctly closed at the end of the response. (the response must therefore end with ]] to to be consistent)"
         prompt_init   = "Please proceed with translating the following array:"
