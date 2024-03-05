@@ -93,7 +93,7 @@ module ImmosquareYaml
           ## Then we have to reformat the output yml file
           ##============================================================##
           final_array = translated_array.map do |k, _from, to|
-            parsed_to = to.start_with?("[") && to.end_with?("]") ? JSON.parse(to) : to
+            parsed_to = !to.nil? && to.start_with?("[") && to.end_with?("]") ? JSON.parse(to) : to
             [k, parsed_to]
           end
           final_hash = translatable_hash(final_array)
