@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.1.23] - 2024-03-04
+
+- Fix new improvement for nil value
+
 ## [0.1.22] - 2024-03-04
 
 - Improve Translate Module for complexe Yaml files
