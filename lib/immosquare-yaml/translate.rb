@@ -313,7 +313,7 @@ module ImmosquareYaml
             ## We calculate the estimate price of the call
             ##============================================================##
             input_price   = response["usage"]["prompt_tokens"]     * (model[:input_price_for_1m] / 1_000_000)
-            output_price  = response["usage"]["completion_tokens"] * (model[:output] / 1_000_000)
+            output_price  = response["usage"]["completion_tokens"] * (model[:output_price_for_1m] / 1_000_000)
             price         = input_price + output_price
             puts("Estimate price => #{input_price.round(3)} + #{output_price.round(3)} = #{price.round(3)} USD")
 
