@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.1.24] - 2024-03-15
+
+- Add new model gpt-4-0125-preview
+
 ## [0.1.23] - 2024-03-04
 
 - Fix new improvement for nil value

@@ -172,20 +172,15 @@ module ImmosquareYaml
       def translate_with_open_ai(array, from, to)
         ##============================================================##
         ## https://platform.openai.com/docs/models/
-        ## No all models are available for all users.
-        ## The model `gpt-4-32k` does not exist or you do not have access to it.
-        ## Learn more: https://help.openai.com/en/articles/7102672-how-can-i-access-gpt-4.
+        ## https://openai.com/pricing
         ##============================================================##
         model_name = ImmosquareYaml.configuration.openai_model
         models     = [
-          {:name => "gpt-3.5-turbo",      :tokens => 4097,      :input => 0.0015, :output => 0.002, :group_size => 75},
-          {:name => "gpt-3.5-turbo-16k",  :tokens => 16_385,    :input => 0.0030, :output => 0.004, :group_size => 300},
-          {:name => "gpt-4",              :tokens => 8192,      :input => 0.0300, :output => 0.060, :group_size => 150},
-          {:name => "gpt-4-32k",          :tokens => 32_769,    :input => 0.0600, :output => 0.120, :group_size => 600},
-          {:name => "gpt-4-1106-preview", :tokens => 128_000,   :input => 0.0100, :output => 0.030, :group_size => 2400}
+          {:name => "gpt-3.5-turbo-0125", :window_tokens => 16_385,  :output_tokens => 4096, :input_price_for_1m => 0.50,  :output_price_for_1m => 1.50,  :group_size => 75},
+          {:name => "gpt-4-0125-preview", :window_tokens => 128_000, :output_tokens => 4096, :input_price_for_1m => 10.00, :output_price_for_1m => 30.00, :group_size => 75}
         ]
         model = models.find {|m| m[:name] == model_name }
-        model = models.find {|m| m[:name] == "gpt-4-1106-preview" } if model.nil?
+        model = models.find {|m| m[:name] == "gpt-4-0125-preview" } if model.nil?
 
         ##============================================================##
         ## Manage blank values
@@ -201,9 +196,7 @@ module ImmosquareYaml
         ## we want to send as little data as possible to openAI because
         ## we pay for the volume of data sent. So we're going to send. We put
         ## a number rather than a string for the translations to be made.
-        ## We take the 16k model to have 16,000k tokens per request
-        ## (around 16,000/4 = 4000 characters).
-        ## ==
+        ## --------
         ## Remove the translations that have already been made
         ##============================================================##
         data_open_ai = array.clone
@@ -221,6 +214,7 @@ module ImmosquareYaml
         end
 
         return array if data_open_ai.empty?
+
 
         ##============================================================##
         ## Call OpenAI API
@@ -253,7 +247,36 @@ module ImmosquareYaml
 
 
         ##============================================================##
-        ## Loop
+        ## Estimate the number of window_tokens
+        ## https://platform.openai.com/tokenizer
+        ## English: 75 words => 100 tokens
+        ## French : 55 words => 100 tokens
+        ## -----------------
+        ## For each array value we add 5 tokens for the array format.
+        ## [1, "my_word"],
+        ## [  => first token
+        ## 2  => second token
+        ## ,  => third token
+        ## "  => fourth token
+        ## ]" => fifth token
+        ## -----------------
+        # data_open_ai.inspect.size => to get the total number of characters in the array
+        ## with the array structure [""],
+        ##============================================================##
+        estimation_for_100_tokens = from == "fr" ? 55 : 75
+        prompt_tokens_estimation  = (((prompt_system.split.size + prompt_init.split.size + data_open_ai.map {|_index, from| from.split.size }.sum) / estimation_for_100_tokens * 100.0) + (data_open_ai.size * 5)).round
+        split_array               = (prompt_tokens_estimation / model[:window_tokens].to_f).ceil
+        slice_size                = (data_open_ai.size / split_array.to_f).round
+        data_open_ai_sliced       = data_open_ai.each_slice(slice_size).to_a
+
+
+        ##============================================================##
+        ## Now each slice of the array should no be more than window_tokens
+        ## of the model.... We can now translate each slice.
+        ## ---------------------------------
+        ## Normally we could send the whole slice at once and tell the api to continue if its response is not tarnished...
+        ## But it should manage if a word is cut etc...
+        ## For the moment we cut it into small group for which we are sure not to exceed the limit
         ##============================================================##
         puts("fields to translate from #{from_iso} (#{from}) to #{to_iso} (#{to}) : #{data_open_ai.size}#{" by group of #{group_size}" if data_open_ai.size > group_size}")
         while index < data_open_ai.size
@@ -289,8 +312,8 @@ module ImmosquareYaml
             ##============================================================##
             ## We calculate the estimate price of the call
             ##============================================================##
-            input_price   = (response["usage"]["prompt_tokens"] / 1000.0) * model[:input]
-            output_price  = (response["usage"]["completion_tokens"] / 1000.0) * model[:output]
+            input_price   = response["usage"]["prompt_tokens"]     * (model[:input_price_for_1m] / 1_000_000)
+            output_price  = response["usage"]["completion_tokens"] * (model[:output] / 1_000_000)
             price         = input_price + output_price
             puts("Estimate price => #{input_price.round(3)} + #{output_price.round(3)} = #{price.round(3)} USD")
 

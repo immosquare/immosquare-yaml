@@ -9,11 +9,17 @@ In the past, there have been significant challenges in using existing YAML parse
 Here are some standout features and advantages of this gem:
 
 - **Reserved Key Management**: Handles keys with "reserved" words seamlessly.
+
 - **Complete Multiline Handling**: Efficiently processes multiline texts using various notations.
+
 - **Value Uniformization**: Retains double quotes only when essential, ensuring a clean and readable output.
+
 - **Emoji Handling**: Comprehensive management of emojis in YAML files.
+
 - **Sorting Capability**: Offers sorting (enabled by default) during the cleaning or parsing phase for a structured representation.
+
 - **Automatic Translations**: Features an automatic translation of YML files, leveraging the artificial intelligence of OpenAI.
+
 - **Optimized for Translations**: Precisely tailored for handling translation files, addressing challenges faced with other parsers.
 
 Whether you're managing translations, real estate data, or any other form of YML data, ImmosquareYaml offers a refined, efficient, and user-friendly experience. Dive in and simplify your YAML operations!
@@ -268,14 +274,12 @@ To use the translation feature, you need to set up your OpenAI API key and speci
 ## =======================================
 ## Available models:
 ## https://platform.openai.com/docs/models/
-## gpt-3.5-turbo
-## gpt-3.5-turbo-16k
-## gpt-4
-## gpt-4-32k
+## gpt-3.5-turbo-0125
+## gpt-4-0125-preview
 ## =======================================
 ImmosquareYaml.config do |config|
   config.openai_api_key = ENV.fetch("openai_api_key", nil)
-  config.openai_model   = "gpt-4"
+  config.openai_model   = "gpt-4-0125-preview"
 end
 ```
 
