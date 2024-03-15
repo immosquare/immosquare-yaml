@@ -1,3 +1,2 @@
 *.gem
 /spec/output
-config_dev.yml

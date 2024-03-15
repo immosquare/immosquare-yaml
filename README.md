@@ -1,6 +1,6 @@
 # ImmosquareYaml
 
-ImmosquareYaml is a dedicated Ruby gem crafted to parse, dump, manage, and translate YML translation files with finesse.
+ImmosquareYaml is a dedicated Ruby gem crafted to parse, dump and manage YML translation files with finesse.
 
 In the past, there have been significant challenges in using existing YAML parsers like [Psych](https://github.com/ruby/psych) and [YAML](https://github.com/ruby/yaml) (which internally utilizes Psych). Issues arose, such as interpreting translation keys like `yes:`, `no:`, and others as booleans. Additionally, they showed shortcomings in effectively handling multiline texts, often faltering with notations like `key: |`, `key: |-`, `key: >`, `key: |5+`, `key: |3-`, and more.
 
@@ -137,57 +137,8 @@ en:
   "yes": This is not a boolean
 ```
 
-and you can have the automatically translated version avec la méthode `
-
-```ruby
-ImmosquareYaml::Translate.translate(path_to_file, "fr")
 ```
 
-```YML
-fr:
-  demo: démonstration
-  demo2:
-    demo2-1:
-      demo2-1-1: bonjour
-      demo2-1-2: null
-      demo2-1-3: John Doe
-  demo3:
-    "1": "tâche #1"
-    "2": "tâche #2"
-    "3": "tâche #2"
-  demo4:
-    "1": "tâche #1"
-    "2": "tâche #2"
-    "3": "tâche #2"
-  description1: |-
-    Ceci est la première ligne du test #1 😀.
-    Ceci est la deuxième ligne du test #1.
-    Ceci est la troisième ligne du test #1
-  description2: |
-    Ceci est la première ligne du test #2 😀.
-    Ceci est la deuxième ligne du test #2.
-    Ceci est la troisième ligne du test #2.
-  description3: |-
-    Ceci est la première ligne du test #3 😀.
-    Ceci est la deuxième ligne du test #3.
-    Ceci est la troisième ligne du test #3.
-  description4: |
-    Ceci est la première ligne du test #4 😀. Ceci est la deuxième ligne du test #4. Ceci est la troisième ligne du test #4.
-  emoji: "Voici un emoji1: 😀"
-  emoji2: Voici un emoji2 😀
-  "no": Ceci non plus
-  some_special_characters:
-    special1: "-tiret"
-    special2: "*astérisque"
-    special3: "%pourcent"
-    special4: ",virgule"
-    special5: "!point_d'exclamation"
-    special6: "?point_d'interrogation"
-    special7: "&esperluette"
-    special8: "#croisillon"
-    special9: "@arobase"
-  "yes": Ce n'est pas un booléen
-```
 
 ---
 
@@ -258,49 +209,6 @@ ImmosquareYaml.dump(hash, 'path/to/your/new/file.yml')
 
 ---
 
-### Translate YAML Files
-
-Experience the advanced capabilities of AI tools. ImmosquareYaml introduces translation features backed by the OpenAI's API.
-
----
-
-### Configuration
-
-To use the translation feature, you need to set up your OpenAI API key and specify the OpenAI model in an Rails initializer.
-
-```ruby
-## config/initializers/immosquare-yaml.rb
-
-## =======================================
-## Available models:
-## https://platform.openai.com/docs/models/
-## gpt-3.5-turbo-0125
-## gpt-4-0125-preview
-## =======================================
-ImmosquareYaml.config do |config|
-  config.openai_api_key = ENV.fetch("openai_api_key", nil)
-  config.openai_model   = "gpt-4-0125-preview"
-end
-```
-
----
-
-### Translation
-
-To translate, just call the translate method specifying the file path and the desired locale:
-
-```ruby
-ImmosquareYaml::Translate.translate("path/to/your/file.yml", "fr")
-```
-
-If you need to reset the translation fields in your target file:
-
-```ruby
-ImmosquareYaml::Translate.translate("path/to/your/file.yml", "fr", :reset_translations => true)
-```
-
----
-
 ### Rake Tasks
 
 For Rails users, there are two rake tasks provided to make YML file management simpler:
@@ -311,16 +219,6 @@ For Rails users, there are two rake tasks provided to make YML file management s
 rake immosquare_yaml:clean
 ```
 
-2. **Translation**: Translates all translation files within your Rails application:
-   Default SOURCE_LOCAL is frencb(fr) & default RESET_TRANSLATIONS is false
-
-```bash
-rake immosquare_yaml:translate
-```
-
-```bash
-rake immosquare_yaml:translate SOURCE_LOCALE=en RESET_TRANSLATIONS=true
-```
 
 ## Contributing
 

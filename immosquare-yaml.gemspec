@@ -19,7 +19,6 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = Gem::Requirement.new(">= 2.7.2")
 
-  spec.add_dependency("httparty", "~> 0")
-  spec.add_dependency("immosquare-extensions", "~> 0", ">= 0.1.14")
-  spec.add_dependency("iso-639",  "~> 0")
+
+  spec.add_dependency("immosquare-extensions", "~> 0", ">= 0.1.18")
 end
