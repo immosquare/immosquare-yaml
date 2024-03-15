@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.1.25] - 2024-03-15
+
+- Fix Price
+
 ## [0.1.24] - 2024-03-15
 
 - Add new model gpt-4-0125-preview
