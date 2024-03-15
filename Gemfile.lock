@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    immosquare-yaml (0.1.25)
+    immosquare-yaml (0.1.26)
       immosquare-extensions (~> 0, >= 0.1.18)
 
 GEM

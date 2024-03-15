@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.1.26] - 2024-03-15
+
+- Move translate Module to seperate gem
+
 ## [0.1.25] - 2024-03-15
 
 - Fix Price
