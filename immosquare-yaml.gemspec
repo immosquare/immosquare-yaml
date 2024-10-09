@@ -5,7 +5,7 @@ Gem::Specification.new do |spec|
   spec.license       = "MIT"
   spec.name          = "immosquare-yaml"
   spec.version       = ImmosquareYaml::VERSION.dup
-  spec.authors       = ["IMMO SQUARE"]
+  spec.authors       = ["immosquare"]
   spec.email         = ["jules@immosquare.com"]
 
   spec.summary       = "A YAML parser optimized for translation files."
