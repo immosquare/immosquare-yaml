@@ -222,7 +222,7 @@ rake immosquare_yaml:clean
 
 ## Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request on our [GitHub repository](https://github.com/IMMOSQUARE/immosquare-yaml).
+Contributions are welcome! Please open an issue or submit a pull request on our [GitHub repository](https://github.com/immosquare/immosquare-yaml).
 
 ## License
 

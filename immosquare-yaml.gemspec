@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description   = "IMMOSQUARE-YAML is a specialized Ruby gem tailored primarily for parsing and dumping YML translation files, addressing challenges faced with other parsers like interpreting translation keys as booleans, multi-line strings, and more."
 
 
-  spec.homepage      = "https://github.com/IMMOSQUARE/immosquare-yaml"
+  spec.homepage      = "https://github.com/immosquare/immosquare-yaml"
 
   spec.files         = Dir["lib/**/*"]
   spec.require_paths = ["lib"]
