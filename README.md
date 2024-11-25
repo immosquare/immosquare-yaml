@@ -203,8 +203,9 @@ ImmosquareYaml.clean('path/to/your/file.yml', :sort => false)
 To create a YAML file from a Ruby hash:
 
 ```ruby
-hash = { 'a' => 1, 'b' => 2 }
-ImmosquareYaml.dump(hash, 'path/to/your/new/file.yml')
+hash  = { 'a' => 1, 'b' => 2 }
+lines = ImmosquareYaml.dump(hash)
+File.write('path/to/your/file.yml', lines)
 ```
 
 ---
