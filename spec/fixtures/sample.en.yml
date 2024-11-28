@@ -1,15 +1,18 @@
 en:
-  fruits: [apple,   orange,          'banana', yes,    false]
+  fruits: [apple, orange, "banana", yes, false]
+  reserved_words:
+    no: no
+    yes: yes
   voitures:
     - marque: Toyota
       modèle: Corolla
     - marque: Honda
-      modèle: 
+      modèle:
   mix:
     - "chaine"
     - 123
     - key: value
-    - key2: 
+    - key2:
   liste_vide: []
   day_names:
     - Sunday
@@ -23,7 +26,7 @@ en:
     - nom: Alice
       age: 30
     - nom: Bob
-      age: 
+      age:
   full:
     - brand: Toyota
       model: Corolla
@@ -35,7 +38,7 @@ en:
             color: black
     - brand: Honda
       model: Accord
-      features: 
+      features:
         - GPS
         - radio:
             type: digital
@@ -45,23 +48,23 @@ en:
     - motorcycle:
         brand: Yamaha
         type: sport
-        details: 
+        details:
           top_speed: 320 km/h
           color: blue
     - bicycles:
-      - type: MTB
-        color: red
-        equipment: 
-          - helmet
-          - gloves
-      - type: road
-        color: white
+        - type: MTB
+          color: red
+          equipment:
+            - helmet
+            - gloves
+        - type: road
+          color: white
     - comments:
-      - "Very good vehicle"
-      - "Comfortable"
-      - "To be avoided"
+        - "Very good vehicle"
+        - "Comfortable"
+        - "To be avoided"
     - purchase_date: "2022-01-15"
-  demo: "demo" 
+  demo: "demo"
   yes: "This is not a boolean"
   no: "Neither is this"
   emoji: "Here's an emoji1: \U0001F600"
@@ -98,8 +101,8 @@ en:
       This is the first line of test #3 \U0001F600.
       This is the second line of test #3.
       This is the third line of test #3.
-  description4: > 
+  description4: >
     This is the first line of test #4 \U0001F600.
     This is the second line of test #4.
-    This is the third line of test #4.  
+    This is the third line of test #4.
   my_final_key: "final key"

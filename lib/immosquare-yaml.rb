@@ -626,6 +626,17 @@ module ImmosquareYaml
                                     value.start_with?(SPACE) ||
                                     value.end_with?(SPACE)
         end
+
+        ##============================================================##
+        ## Final clean to prevent
+        ## "yes": YES
+        ## "no": NO
+        ##============================================================##
+        value = "\"#{value}\"" if RESERVED_KEYS.include?(value)
+
+        ##============================================================##
+        ## Return the cleaned value
+        ##============================================================##
         value
       end
       is_array.instance_of?(String) ? values.first : "[#{values.join(", ")}]"
