@@ -1,3 +1,6 @@
+## [0.1.27] - 2024-11-28
+- fix case with RESERVED_KEYS.include in value
+
 ## [0.1.26] - 2024-03-15
 - Move translate Module to seperate gem
 
