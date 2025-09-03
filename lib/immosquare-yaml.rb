@@ -1,6 +1,7 @@
 require          "English"
 require          "psych"
 require          "date"
+require          "fileutils"
 require          "immosquare-extensions"
 require_relative "immosquare-yaml/configuration"
 require_relative "immosquare-yaml/shared_methods"
