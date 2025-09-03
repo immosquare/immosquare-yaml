@@ -1,3 +1,6 @@
+## [0.1.28] - 2025-09-03
+- Add missing require of fileutils
+
 ## [0.1.27] - 2024-11-28
 - fix case with RESERVED_KEYS.include in value
 
