@@ -6,20 +6,20 @@ require_relative "immosquare-yaml/configuration"
 require_relative "immosquare-yaml/shared_methods"
 require_relative "immosquare-yaml/railtie" if defined?(Rails)
 
-##===========================================================================##
+##============================================================##
 ## Importing the 'English' library allows us to use more human-readable
 ## global variables, such as $INPUT_RECORD_SEPARATOR instead of $/,
 ## which enhances code clarity and makes it easier to understand
 ## the purpose of these variables in our code.
-##===========================================================================##
+##============================================================##
 module ImmosquareYaml
   extend SharedMethods
 
   class << self
 
-    ##===========================================================================##
+    ##============================================================##
     ## Gem configuration
-    ##===========================================================================##
+    ##============================================================##
     attr_writer :configuration
 
     def configuration
@@ -30,7 +30,7 @@ module ImmosquareYaml
       yield(configuration)
     end
 
-    ##===========================================================================##
+    ##============================================================##
     ## This method cleans a specified YAML file by processing it line by line.
     ## It executes a comprehensive cleaning routine, which involves parsing the
     ## YAML content to a hash, optionally sorting it, and then dumping it back
@@ -42,7 +42,7 @@ module ImmosquareYaml
     ##
     ## Returns:
     ## Boolean indicating the success (true) or failure (false) of the operation.
-    ##===========================================================================##
+    ##============================================================##
     def clean(file_path, **options)
       ##============================================================##
       ## Default options
@@ -56,41 +56,41 @@ module ImmosquareYaml
         output_file_path = nil
         raise("File not found") if !File.exist?(file_path)
 
-        ##===========================================================================##
+        ##============================================================##
         ## Setup variables
-        ##===========================================================================##
+        ##============================================================##
         output_file_path = options[:output]
 
-        ##===========================================================================##
+        ##============================================================##
         ## Backup original content for restoration after parsing if necessary
-        ##===========================================================================##
+        ##============================================================##
         original_content = File.read(file_path) if output_file_path != file_path
 
-        ##===========================================================================##
+        ##============================================================##
         ## The cleaning procedure is initialized with a comprehensive clean, transforming
         ## the YAML content to a hash to facilitate optional sorting, before
         ## rewriting it to the YAML file in its cleaned and optionally sorted state.
-        ##===========================================================================##
+        ##============================================================##
         clean_yml(file_path)
         parsed_yml = parse(file_path)
         parsed_yml = parsed_yml.sort_by_key
         parsed_yml = dump(parsed_yml)
 
-        ##===========================================================================##
+        ##============================================================##
         ## Restore original content if necessary
-        ##===========================================================================##
+        ##============================================================##
         File.write(file_path, original_content) if output_file_path != file_path
 
-        ##===========================================================================##
+        ##============================================================##
         ## Write the cleaned YAML content to the specified output file
-        ##===========================================================================##
+        ##============================================================##
         FileUtils.mkdir_p(File.dirname(output_file_path))
         File.write(output_file_path, parsed_yml)
         true
       rescue StandardError => e
-        ##===========================================================================##
+        ##============================================================##
         ## Restore original content if necessary
-        ##===========================================================================##
+        ##============================================================##
         File.write(file_path, original_content) if output_file_path != file_path && !original_content.nil?
         puts(e.message)
         puts(e.backtrace)
@@ -98,7 +98,7 @@ module ImmosquareYaml
       end
     end
 
-    ##==========================================================================##
+    ##============================================================##
     ## This method parses a specified YAML file, carrying out a preliminary
     ## cleaning operation to ensure a smooth parsing process. Following this,
     ## the cleaned file is transformed into a hash, which can optionally be sorted.
@@ -110,7 +110,7 @@ module ImmosquareYaml
     ##
     ## Returns:
     ## A hash representation of the YAML file or false if an error occurs.
-    ##==========================================================================##
+    ##============================================================##
     def parse(file_path, **options)
       options = {:sort => true}.merge(options)
 
@@ -118,35 +118,35 @@ module ImmosquareYaml
         original_content = nil
         raise("File not found") if !File.exist?(file_path)
 
-        ##===========================================================================##
+        ##============================================================##
         ## Backup original content for restoration after parsing
-        ##===========================================================================##
+        ##============================================================##
         original_content = File.read(file_path)
 
-        ##===========================================================================##
+        ##============================================================##
         ## clean the file
-        ##===========================================================================##
+        ##============================================================##
         clean_yml(file_path)
 
-        ##===========================================================================##
+        ##============================================================##
         ## parse the file & sort if necessary
-        ##===========================================================================##
+        ##============================================================##
         parsed_xml = parse_xml(file_path)
         parsed_xml = parsed_xml.sort_by_key if options[:sort]
 
-        ##===========================================================================##
+        ##============================================================##
         ## Restore original content
-        ##===========================================================================##
+        ##============================================================##
         File.write(file_path, original_content) if !original_content.nil?
 
-        ##===========================================================================##
+        ##============================================================##
         ## Return the parsed YAML file
-        ##===========================================================================##
+        ##============================================================##
         parsed_xml
       rescue StandardError => e
-        ##===========================================================================##
+        ##============================================================##
         ## Restore original content
-        ##===========================================================================##
+        ##============================================================##
         File.write(file_path, original_content) if !original_content.nil?
         puts(e.message)
         puts(e.backtrace)
@@ -154,7 +154,7 @@ module ImmosquareYaml
       end
     end
 
-    ##===========================================================================##
+    ##============================================================##
     ## This method performs a dump operation to obtain a well-structured
     ## YAML file from a hash input. It iterates through each key-value pair in the
     ## hash and constructs a series of lines representing the YAML file, with
@@ -168,13 +168,13 @@ module ImmosquareYaml
     ##
     ## Returns:
     ## A string representing the YAML representation of the input hash.
-    ##===========================================================================##
+    ##============================================================##
     def dump(hash, lines = [], indent = 0)
       hash.each do |key, value|
-        ##===========================================================================##
+        ##============================================================##
         ## Preparing the key with the proper indentation before identifying
         ## the type of the value to handle it appropriately in the YAML representation.
-        ##===========================================================================##
+        ##============================================================##
         line = "#{SPACE * indent}#{clean_key(key)}:"
 
         case value
@@ -182,12 +182,12 @@ module ImmosquareYaml
           lines << "#{line} null"
         when String
           if value.include?(NEWLINE) || value.include?('\n')
-            ##=============================================================##
+            ##============================================================##
             ## We display the line with the key
             ## then the indentation if necessary
             ## then - if necessary (the + is not displayed because it is
             ## the default behavior)
-            ##=============================================================##
+            ##============================================================##
             line        += "#{SPACE}|"
             indent_level = value[/\A */].size
             line        += (indent_level + INDENT_SIZE).to_s if indent_level > 0
@@ -201,9 +201,9 @@ module ImmosquareYaml
             value = value[1..-2] while (value.start_with?(DOUBLE_QUOTE) && value.end_with?(DOUBLE_QUOTE)) || (value.start_with?(SIMPLE_QUOTE) && value.end_with?(SIMPLE_QUOTE))
 
 
-            ##=============================================================##
+            ##============================================================##
             ## We parse on the 2 types of line breaks
-            ##=============================================================##
+            ##============================================================##
             value.split(/\\n|\n/).each do |subline|
               lines << "#{SPACE * (indent + INDENT_SIZE)}#{subline}"
             end
@@ -228,10 +228,10 @@ module ImmosquareYaml
         end
       end
 
-      ##===========================================================================##
+      ##============================================================##
       ## Finalizing the construction by adding a newline at the end and
       ## removing whitespace from empty lines.
-      ##===========================================================================##
+      ##============================================================##
       lines += [NOTHING]
       lines = lines.map {|l| l.strip.empty? ? NOTHING : l }
       lines.join("\n")
@@ -253,20 +253,20 @@ module ImmosquareYaml
       weirdblock        = false
       line_index        = 1
 
-      ##===================================================================================#
+      ##============================================================##
       ## First, we normalize the file by ensuring it always ends with an empty line
       ## This also allows us to get the total number of lines in the file,
       ## helping us to determine when we are processing the last line
-      ###===================================================================================#
+      ##============================================================##
       line_count = File.normalize_last_line(file_path)
 
 
       File.foreach(file_path) do |current_line|
         last_line = line_index == line_count
 
-        ##===================================================================================#
+        ##============================================================##
         ## Cleaning the current line by removing multiple spaces occurring after a non-space character
-        ##===================================================================================#
+        ##============================================================##
         current_line = current_line.to_s.gsub(/(?<=\S)\s+/, SPACE)
 
         ##============================================================##
@@ -274,10 +274,10 @@ module ImmosquareYaml
         ##============================================================##
         current_line = current_line.rstrip
 
-        ##===================================================================================#
+        ##============================================================##
         ## Detecting blank lines to specially handle the last line within a block;
         ## if we are inside a block or it's the last line, we avoid skipping
-        ##===================================================================================#
+        ##============================================================##
         blank_line = current_line.gsub(NEWLINE, NOTHING).empty?
         next if !(last_line || inblock || !blank_line)
 
@@ -289,10 +289,10 @@ module ImmosquareYaml
         need_to_clean_prev_inblock   = inblock    == true && ((!blank_line && indent_level <= inblock_indent) || last_line)
         need_to_clen_prev_weirdblock = weirdblock == true && (indent_level <= weirdblock_indent || last_line)
 
-        ##===================================================================================#
+        ##============================================================##
         ## Handling the exit from a block:
         ## if we are exiting a block, we clean the entire block
-        ##===================================================================================#
+        ##============================================================##
         if need_to_clean_prev_inblock
           inblock = false
           ##============================================================##
@@ -325,7 +325,6 @@ module ImmosquareYaml
           ## transforming the block of text into a single line.
           ## However, it preserves newlines that follow an empty line.
           ## Final new line: A new line is added at the end of the text.
-          ## ===
           ## We can also have |4- or |4+ to say with indentation 4
           ##============================================================##
           block_lines  = block_lines.reverse
@@ -345,17 +344,17 @@ module ImmosquareYaml
           end
         end
 
-        ##===================================================================================#
+        ##============================================================##
         ## Handling 'weirdblocks': cases where multi-line values are enclosed in quotes,
         ## which should actually be single-line values
-        ##  key: "
-        ##    line1
-        ##    line2
-        ##    line3"
-        ##  key: '
-        ##    line1
-        ##    line2
-        ##    line3'
+        ## key: "
+        ## line1
+        ## line2
+        ## line3"
+        ## key: '
+        ## line1
+        ## line2
+        ## line3'
         ##============================================================##
         if need_to_clen_prev_weirdblock
           weirdblock  = false
@@ -363,10 +362,10 @@ module ImmosquareYaml
           lines[-1]   = "#{key}: #{clean_value(value)}"
         end
 
-        ##===================================================================================#
+        ##============================================================##
         ## Handling keys without values: if the previous line ends with a colon (:) and is not
         ## followed by a value, we assign 'null' as the value
-        ##===================================================================================#
+        ##============================================================##
         if inblock == false && weirdblock == false && lines[-1] && lines[-1].end_with?(":") && last_inblock == false
           prev_indent = lines[-1][/\A */].size
           lines[-1] += " null" if prev_indent >= indent_level
@@ -381,35 +380,33 @@ module ImmosquareYaml
         split = inblock || weirdblock ? [current_line] : current_line.strip.split(":", 2)
         key   = inblock || weirdblock ? nil : split[0].to_s.strip
 
-        ##===================================================================================#
+        ##============================================================##
         ## Line processing based on various conditions such as being inside a block,
         ## starting with a comment symbol (#), or being a part of a 'weirdblock'
         ## Each case has its specific line cleaning strategy
-        ## ----
         ## If the line is commented out, we keep and we remove newlines
         ##============================================================##
         if current_line.lstrip.start_with?("#")
           lines << current_line.gsub(NEWLINE, NOTHING)
-        ##================================================= ============##
+        ##============================================================##
         ## If is in a block (multiline > | or |-), we clean
         ## the line because it can start with spaces tabs etc.
         ## and put it with the block indenter
-        ##================================================= ============##
+        ##============================================================##
         elsif inblock == true
           current_line = current_line.gsub(NEWLINE, NOTHING).strip
           lines << "#{SPACE * (inblock_indent + INDENT_SIZE)}#{current_line}"
-        ##================================================= ============##
+        ##============================================================##
         ## if the line ends with a multi-line character and we have a key.
         ## we start a block
         ## The regex works as follows:
-        ##=========================================================
         ## \S+    : All non-space characters at the start of the line.
         ## :      : Matches the string ": " literally (space included).
         ## [>|]   : Matches a single character that is either ">" or "|".
         ## (\d*)  : Capture group that matches zero or more digits (0-9).
         ## [-+]?  : Matches zero or a character that is either "-" or "+".
         ## $      : Matches the end of the line/string.
-        ##================================================= ============##
+        ##============================================================##
         elsif current_line.rstrip.match?(/\S+: [>|](\d*)[-+]?$/)
           lines << current_line.gsub(NEWLINE, NOTHING)
           inblock_indent = indent_level
@@ -419,9 +416,9 @@ module ImmosquareYaml
         ## but without > | or |- at the end of the line
         ## which should actually be inline.
         ## mykey:
-        ##   line1
-        ##   line2
-        ##   line3
+        ## line1
+        ## line2
+        ## line3
         ## my key: line1 line2 line3
         ##============================================================##
         elsif split.size < 2
@@ -484,7 +481,6 @@ module ImmosquareYaml
     ##============================================================##
     ## clean_key Function
     ## Purpose: Clean up and standardize YAML keys
-    ##============================================================##
     ## Strategy:
     ## 1. Forcefully convert the key to a string to handle gsub operations, especially if it's an integer.
     ## 2. Remove quotes if they are present.
@@ -510,7 +506,6 @@ module ImmosquareYaml
       is_int = key =~ /\A[-+]?\d+\z/
 
       ##============================================================##
-      ##
       ## Re-add quotes if the key is in the list of reserved keys or is an integer
       ##============================================================##
       key = "\"#{key}\"" if RESERVED_KEYS.include?(key) || is_int
@@ -534,7 +529,7 @@ module ImmosquareYaml
     ## Purpose: Sanitize and standardize YAML values
     ## In YAML "inblock" scenarios, there's no need to add quotes
     ## around values as it's inherently handled.
-    ## ============================================================ ##
+    ##============================================================##
     def clean_value(values, with_quotes_verif = true)
       ##============================================================##
       ## Convert key to array if not
@@ -555,7 +550,7 @@ module ImmosquareYaml
         ## Remove newline characters at the end of the value if present.
         ## This should be done prior to strip operation to handle scenarios
         ## where the value ends with a space followed by a newline.
-        ###============================================================##
+        ##============================================================##
         value = value[0..-2] if value.end_with?(NEWLINE)
 
 
@@ -597,7 +592,7 @@ module ImmosquareYaml
         ##============================================================##
         value = value.gsub(/\\U([0-9A-Fa-f]{8})/) { [::Regexp.last_match(1).to_i(16)].pack("U*") }
 
-        ##=============================================================##
+        ##============================================================##
         ## Handling cases where the value must be surrounded by quotes
         ## if:
         ## management of "" and " ". Not possible to have more spaces
@@ -612,7 +607,7 @@ module ImmosquareYaml
         ## RESERVED_KEYS.include?(value)          => key: YES
         ## value.start_with?(SPACE)               => key: 'text'
         ## value.end_with?(SPACE)                 => key: text '
-        ##=============================================================##
+        ##============================================================##
         if value.empty?
           value = "\"#{value}\""
         elsif with_quotes_verif == true
