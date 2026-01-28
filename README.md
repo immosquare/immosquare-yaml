@@ -144,25 +144,9 @@ en:
 
 ## Installation
 
-Add this line to your Gemfile:
-
 ```ruby
-gem 'immosquare-yaml'
+gem "immosquare-yaml"
 ```
-
-And then execute:
-
-```sh
-bundle install
-```
-
-Or install it yourself as:
-
-```sh
-gem install immosquare-yaml
-```
-
----
 
 ## Usage
 
