@@ -1,3 +1,16 @@
+## [1.0.0] - 2026-05-07
+
+### Changed
+- Rewrite parser and dumper on top of the Psych AST. The previous line-by-line `clean_yml`/`parse_xml` pipeline is removed; `parse` now walks `Psych.parse_file` directly, and `dump` is split into a public single-argument `dump(hash)` plus a private `render_hash`. Norway problem, literal block preservation (`|` / `|-`), minimal quoting (single-quoted by default, double-quoted only when `'`, `\` or `\t` are present) and `\U0001F600` decoding are now handled at the AST/scalar level.
+- Mission scope refocused on Rails translation files (README and CLAUDE.md rewritten accordingly).
+
+### Added
+- `spec/fixtures/edge_cases.fr.yml` and `spec/immosquare-yaml_edge_cases_spec.rb` covering 21 categories: Norway problem, numeric keys, deep nesting, Rails interpolation, pluralization, inline HTML, emojis, typographic quotes, folded scalars, literal blocks, lists, special leading characters, quoting triggers, null values, currencies and key naming conventions.
+
+### Removed
+- Internal `clean_yml`, `parse_xml` and the line-by-line preprocessing helpers.
+- Undocumented positional arguments on `dump` (`lines`, `indent`) — now strictly `dump(hash)`.
+
 ## [0.1.28] - 2025-09-03
 - Add missing require of fileutils
 

@@ -1,3 +1,3 @@
 module ImmosquareYaml
-  VERSION = "0.1.28".freeze
+  VERSION = "1.0.0".freeze
 end
