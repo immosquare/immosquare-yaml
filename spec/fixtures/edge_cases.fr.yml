@@ -1,0 +1,216 @@
+---
+fr:
+  ##========================================================##
+  ## Norway problem : clés et valeurs réservées YAML 1.1
+  ##========================================================##
+  yes: "Une valeur"
+  no: "Autre valeur"
+  reserved_values:
+    a: "yes"
+    b: "no"
+    c: "on"
+    d: "off"
+    e: "true"
+    f: "false"
+
+  ##========================================================##
+  ## Clés numériques (entières et décimales en string)
+  ##========================================================##
+  steps:
+    1: "Première étape"
+    2: "Deuxième étape"
+    10: "Dixième étape"
+
+  ##========================================================##
+  ## Hash profond (5 niveaux)
+  ##========================================================##
+  app:
+    section:
+      subsection:
+        block:
+          item: "Valeur profondément imbriquée"
+
+  ##========================================================##
+  ## Interpolations Rails %{var}
+  ##========================================================##
+  greetings:
+    hello: "Bonjour %{name}"
+    welcome: "Bienvenue, %{first_name} %{last_name}"
+    counter: "Vous avez %{count} message(s)"
+    multi: "Le %{date} à %{time}, dans %{location}"
+
+  ##========================================================##
+  ## Pluralisation Rails (zero/one/few/many/other)
+  ##========================================================##
+  apples:
+    zero: "Aucune pomme"
+    one: "Une pomme"
+    other: "%{count} pommes"
+
+  ##========================================================##
+  ## HTML inline (souvent vu dans les marketing copies)
+  ##========================================================##
+  homepage:
+    hero_html: 'Bienvenue sur <strong>NotreApp</strong> — la solution <em>moderne</em>.'
+    cta_html: 'Cliquez <a href="https://example.com" class="btn btn-primary">ici</a> pour démarrer.'
+    legal_html: "En cochant cette case, vous acceptez nos <a href=\"/terms\">CGU</a>."
+
+  ##========================================================##
+  ## Emojis : escape \U... et caractère UTF-8 direct
+  ##========================================================##
+  emoji_section:
+    smile_escape: "Sourire \U0001F600 dans une chaîne"
+    smile_direct: "Sourire 😀 directement"
+    multiple: "Plusieurs : 🎉 🚀 ✨"
+    in_quoted_with_colon: "Bravo : 🎉 réussite !"
+
+  ##========================================================##
+  ## Apostrophes typographiques (’ ‘ “ ”) — doivent être
+  ## normalisées vers des guillemets standards.
+  ##========================================================##
+  typography:
+    curly_apostrophe: "L’utilisateur s’est connecté"
+    curly_quotes: "Texte « entre guillemets »"
+    em_dash: "Tiret cadratin — exemple"
+    ellipsis: "Trois points de suspension…"
+
+  ##========================================================##
+  ## Texte long en folded scalar (>-) — le bug historique
+  ## que cette suite de tests vérifie en priorité.
+  ##========================================================##
+  marketing:
+    long_description: >-
+      Ceci est un texte très long qui s'étale sur plusieurs lignes dans le fichier source mais qui doit être traité comme une seule longue ligne logique. Il contient
+      des éléments comme une virgule, un point d'exclamation ! et même un point d'interrogation ? sans être coupé sémantiquement.
+    very_long_html: >-
+      Solution clé en main pour les professionnels. Découvrez nos modules <a href="https://example.com">en ligne</a>, ou contactez-nous par email à
+      contact@example.com pour une démo personnalisée.
+
+  ##========================================================##
+  ## Blocs multilignes : | (literal, garde \n final),
+  ## |- (literal chomp, sans \n final).
+  ##========================================================##
+  long_form:
+    paragraph_with_final_newline: |
+      Premier paragraphe.
+      Deuxième paragraphe.
+      Troisième paragraphe.
+    paragraph_chomped: |-
+      Sans newline final.
+      Ligne 2.
+      Ligne 3.
+    indented_block: |
+      Texte avec
+      des sauts de ligne
+      qui doivent être préservés exactement.
+
+  ##========================================================##
+  ## Listes simples
+  ##========================================================##
+  weekdays:
+    - lundi
+    - mardi
+    - mercredi
+    - jeudi
+    - vendredi
+    - samedi
+    - dimanche
+
+  empty_list: []
+
+  ##========================================================##
+  ## Liste de hashs (cas Rails fréquent : tableau de configs)
+  ##========================================================##
+  team_members:
+    - name: Alice
+      role: Designer
+      level: 3
+    - name: Bob
+      role: Engineer
+      level: 5
+    - name: Charlie
+      role: Manager
+      level: null
+
+  ##========================================================##
+  ## Liste avec sous-structures imbriquées (3 niveaux)
+  ##========================================================##
+  product_catalog:
+    - sku: A-001
+      name: Produit 1
+      tags:
+        - bestseller
+        - new
+      pricing:
+        eur: 49.90
+        usd: 54.00
+    - sku: B-002
+      name: Produit 2
+      tags: []
+      pricing:
+        eur: 99.00
+
+  ##========================================================##
+  ## Caractères spéciaux en début de valeur — déclenchent
+  ## le quoting au dump pour ne pas être confondus avec
+  ## des marqueurs YAML.
+  ##========================================================##
+  special_starts:
+    dash: "-tiret"
+    asterisk: "*étoile"
+    percent: "%pourcentage"
+    ampersand: "&esperluette"
+    hash: "#dièse"
+    at: "@arobase"
+    exclamation: "!exclamation"
+    question: "?interrogation"
+    pipe: "|barre"
+    bracket_open: "[crochet"
+    angle_open: ">chevron"
+    colon: ":deux-points"
+    comma: ",virgule"
+    quote_double: "\"guillemet"
+    quote_single: "'apostrophe"
+    backtick: "`backtick"
+
+  ##========================================================##
+  ## Patterns problématiques pour le quoting :
+  ## - ":  " interne, " #" interne, ":" final.
+  ##========================================================##
+  quoting_triggers:
+    colon_internal: "Texte : avec deux-points en milieu"
+    hash_internal: "Texte # avec dièse"
+    ends_with_colon: "Finit par deux-points:"
+    leading_space: " commence par espace"
+    trailing_space: "finit par espace "
+    just_a_space: " "
+    empty_string: ""
+
+  ##========================================================##
+  ## Valeurs nulles
+  ##========================================================##
+  nullables:
+    explicit_null: null
+    tilde_null: ~
+    missing_value:
+
+  ##========================================================##
+  ## Devises et chiffres dans des strings
+  ##========================================================##
+  prices:
+    eur: "1 234,56 €"
+    usd: "$1,234.56"
+    range: "De 100 € à 1 000 €"
+    discount: "-15 %"
+
+  ##========================================================##
+  ## Clés avec différentes conventions de nommage
+  ##========================================================##
+  naming:
+    snake_case_key: "valeur 1"
+    kebab-case-key: "valeur 2"
+    camelCaseKey: "valeur 3"
+    UPPER_CASE: "valeur 4"
+    "with.dots": "valeur 5"
+    "with spaces": "valeur 6"
+    "1_starts_with_digit": "valeur 7"

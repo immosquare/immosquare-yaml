@@ -1,144 +1,16 @@
 # ImmosquareYaml
 
-ImmosquareYaml is a dedicated Ruby gem crafted to parse, dump and manage YML translation files with finesse.
+A thin Psych post-processor for Rails translation files (`config/locales/*.yml`).
 
-In the past, there have been significant challenges in using existing YAML parsers like [Psych](https://github.com/ruby/psych) and [YAML](https://github.com/ruby/yaml) (which internally utilizes Psych). Issues arose, such as interpreting translation keys like `yes:`, `no:`, and others as booleans. Additionally, they showed shortcomings in effectively handling multiline texts, often faltering with notations like `key: |`, `key: |-`, `key: >`, `key: |5+`, `key: |3-`, and more.
+The Ruby standard library's [Psych](https://github.com/ruby/psych) parses YAML correctly but is not opinionated about how the output should look. For translation files, that creates real-world friction:
 
-## Why Choose ImmosquareYaml?
+- `yes:`, `no:`, `on:`, `off:` keys are interpreted as booleans (the [Norway problem](https://hitchdev.com/strictyaml/why/implicit-typing-removed/))
+- Keys are emitted in arbitrary order, making git diffs noisy
+- Block literals (`|`, `|-`) get rewritten with surprising indentation choices
+- Strings are quoted defensively even when not needed
+- Unicode escapes like `\U0001F600` survive instead of becoming actual emojis
 
-Here are some standout features and advantages of this gem:
-
-- **Reserved Key Management**: Handles keys with "reserved" words seamlessly.
-
-- **Complete Multiline Handling**: Efficiently processes multiline texts using various notations.
-
-- **Value Uniformization**: Retains double quotes only when essential, ensuring a clean and readable output.
-
-- **Emoji Handling**: Comprehensive management of emojis in YAML files.
-
-- **Sorting Capability**: Offers sorting (enabled by default) during the cleaning or parsing phase for a structured representation.
-
-- **Automatic Translations**: Features an automatic translation of YML files, leveraging the artificial intelligence of OpenAI.
-
-- **Optimized for Translations**: Precisely tailored for handling translation files, addressing challenges faced with other parsers.
-
-Whether you're managing translations, real estate data, or any other form of YML data, ImmosquareYaml offers a refined, efficient, and user-friendly experience. Dive in and simplify your YAML operations!
-
----
-
-## Quick Example
-
-Let's assume you have a YML file with some reserved keys, multiline texts, and emojis:
-
-```YML
-en:
-  demo: "demo"
-  yes: "This is not a boolean"
-  no: "Neither is this"
-  emoji: "Here's an emoji1: \U0001F600"
-  emoji2: "Here's an emoji2 \U0001F600"
-  demo2:
-    demo2-1:
-      demo2-1-1: "hello"
-      demo2-1-2:
-      demo2-1-3: "John Doe"
-  demo3:
-    1: "task #1"
-    2: "task #2"
-    3: "task #2"
-  demo4:
-    "1": "task #1"
-    "2": "task #2"
-    "3": "task #2"
-  some_special_characters:
-    special1: "-hyphen"
-    special2: "*asterisk"
-    special3: "%percent"
-    special4: ",comma"
-    special5: "!exclamation"
-    special6: "?question_mark"
-    special7: "&ampersand"
-    special8: "#hash"
-    special9: "@at"
-  some_special_characters:
-    special1: """-tiret"""
-    special2: """*astérisque"""
-    special3: """%pourcent"""
-    special4: """,virgule"""
-    special5: """!point_d'exclamation"""
-    special6: """?point_d'interrogation"""
-    special7: """&esperluette"""
-    special8: """#croisillon"""
-    special9: """@arobase"""
-  description1: "This is the first line of test #1 \U0001F600.\nThis is the second line of test#1.\nThis is the third line of test.#1"
-  description2: |
-    This is the first line of test #2 \U0001F600.
-    This is the second line of test #2.
-    This is the third line of test #2.
-  description3: |4-
-      This is the first line of test #3 \U0001F600.
-      This is the second line of test #3.
-      This is the third line of test #3.
-  description4: >
-    This is the first line of test #4 \U0001F600.
-    This is the second line of test #4.
-    This is the third line of test #4.
-```
-
-After processing this YML file, reserved keys such as yes and no are preserved, emojis are correctly interpreted, unnecessary quotes are removed, and multiline texts are formatted consistently.
-
-```ruby
-ImmosquareYaml.clean(path_to_file)
-```
-
-```YML
-en:
-  demo: demo
-  demo2:
-    demo2-1:
-      demo2-1-1: hello
-      demo2-1-2: null
-      demo2-1-3: John Doe
-  demo3:
-    "1": "task #1"
-    "2": "task #2"
-    "3": "task #2"
-  demo4:
-    "1": "task #1"
-    "2": "task #2"
-    "3": "task #2"
-  description1: |-
-    This is the first line of test #1 😀.
-    This is the second line of test#1.
-    This is the third line of test.#1
-  description2: |
-    This is the first line of test #2 😀.
-    This is the second line of test #2.
-    This is the third line of test #2.
-  description3: |4-
-      This is the first line of test #3 😀.
-      This is the second line of test #3.
-      This is the third line of test #3.
-  description4: |
-    This is the first line of test #4 😀. This is the second line of test #4. This is the third line of test #4.
-  emoji: "Here's an emoji1: 😀"
-  emoji2: Here's an emoji2 😀
-  "no": Neither is this
-  some_special_characters:
-    special1: "-tiret"
-    special2: "*astérisque"
-    special3: "%pourcent"
-    special4: ",virgule"
-    special5: "!point_d'exclamation"
-    special6: "?point_d'interrogation"
-    special7: "&esperluette"
-    special8: "#croisillon"
-    special9: "@arobase"
-  "yes": This is not a boolean
-```
-
-```
-
+ImmosquareYaml takes a YAML file in, returns a Hash, or writes back a clean, sorted, human-readable YAML file out. Internally it walks the Psych AST — it is not a parser.
 
 ---
 
@@ -148,67 +20,184 @@ en:
 gem "immosquare-yaml"
 ```
 
+```bash
+bundle install
+```
+
+---
+
+## Public API
+
+| Method                                                 | Returns   | Purpose                                                                                  |
+| ------------------------------------------------------ | --------- | ---------------------------------------------------------------------------------------- |
+| `ImmosquareYaml.parse(path, sort: true)`               | `Hash`    | Parse a YAML file into a Ruby hash. Sorted by key by default.                            |
+| `ImmosquareYaml.clean(path, sort: true, output: path)` | `Boolean` | Parse, sort, re-emit. Overwrites the file by default; pass `:output` to write elsewhere. |
+| `ImmosquareYaml.dump(hash)`                            | `String`  | Serialize a Ruby hash to a YAML string with the same formatting rules as `clean`.        |
+
+All three preserve the five guarantees below.
+
+---
+
+## What it guarantees
+
+### 1. Norway problem — reserved words stay strings
+
+```yaml
+# input
+en:
+  yes: This is not a boolean
+  no: Neither is this
+  reserved_words:
+    yes: yes
+    no: no
+```
+
+```ruby
+ImmosquareYaml.parse("locales.en.yml")
+# => {
+#   "en" => {
+#     "yes" => "This is not a boolean",
+#     "no"  => "Neither is this",
+#     "reserved_words" => { "yes" => "yes", "no" => "no" }
+#   }
+# }
+```
+
+After `clean`, reserved keys and values are quoted so a vanilla `YAML.load` round-trips correctly:
+
+```yaml
+en:
+  "no": Neither is this
+  reserved_words:
+    "no": "no"
+    "yes": "yes"
+  "yes": This is not a boolean
+```
+
+### 2. Deterministic key order
+
+Keys are sorted alphabetically by default. Stable diffs, no merge conflicts on key reorders. Pass `sort: false` to keep insertion order.
+
+### 3. Literal block scalars (`|` and `|-`) preserved
+
+```yaml
+# input
+en:
+  description: |
+    Line 1.
+    Line 2.
+    Line 3.
+```
+
+`parse` returns `"Line 1.\nLine 2.\nLine 3.\n"`, and `clean` re-emits the exact same `|` block.
+
+### 4. Minimal quoting
+
+Strings are emitted plain whenever YAML allows it. Quotes appear only when the value would be ambiguous: contains `: `, ` #`, leading or trailing whitespace, starts with a YAML special character, ends with `:`, or matches a reserved word. Embedded double quotes are escaped (`\"`).
+
+### 5. Unicode escapes decoded
+
+```yaml
+# input
+en:
+  emoji: "Bravo \U0001F600"
+```
+
+```yaml
+# after clean
+en:
+  emoji: Bravo 😀
+```
+
+---
+
 ## Usage
 
-### Parsing YAML Files
-
-To convert a YAML file into a Ruby hash:
+### Parse
 
 ```ruby
-hash = ImmosquareYaml.parse('path/to/your/file.yml')
+hash = ImmosquareYaml.parse("config/locales/en.yml")
+hash = ImmosquareYaml.parse("config/locales/en.yml", :sort => false)
 ```
 
-By default, the resultant hash will be sorted. If you wish to prevent sorting:
+Returns `false` if the file does not exist or cannot be parsed. Returns `{}` for empty files.
+
+### Clean
 
 ```ruby
-hash = ImmosquareYaml.parse('path/to/your/file.yml', :sort => false)
+##============================================================##
+## Overwrite the file in place
+##============================================================##
+ImmosquareYaml.clean("config/locales/en.yml")
+
+##============================================================##
+## Write to a different path
+##============================================================##
+ImmosquareYaml.clean("config/locales/en.yml", :output => "tmp/cleaned.yml")
+
+##============================================================##
+## Keep insertion order
+##============================================================##
+ImmosquareYaml.clean("config/locales/en.yml", :sort => false)
+```
+
+### Dump
+
+```ruby
+yaml = ImmosquareYaml.dump({
+  "en" => {
+    "yes"   => "This is not a boolean",
+    "emoji" => "Bravo \u{1F600}"
+  }
+})
+
+File.write("config/locales/en.yml", yaml)
 ```
 
 ---
 
-### Cleaning YAML Files
+## How it works
 
-To sanitize a YAML file:
+`parse` calls `Psych.parse_file` to get a YAML AST, then walks it:
 
-```ruby
-ImmosquareYaml.clean('path/to/your/file.yml')
-```
+- `Psych::Nodes::Mapping` → Ruby `Hash` (keys always cast to `String`)
+- `Psych::Nodes::Sequence` → Ruby `Array`
+- `Psych::Nodes::Scalar` → `String`, `Integer`, `Float` or `nil`, with the Norway exception applied at the leaf
 
-If you wish to prevent sorting after cleaning:
+`dump` walks the resulting hash and writes YAML manually:
 
-```ruby
-ImmosquareYaml.clean('path/to/your/file.yml', :sort => false)
-```
+- Reserved or numeric keys are wrapped in double quotes
+- Strings containing `\n` are emitted as `|` or `|-` blocks
+- Strings that would be ambiguous in plain form are double-quoted, with `\`, `"` and tabs properly escaped
+- Arrays are delegated to `Psych.dump` and re-indented to match the surrounding block
 
----
-
-### Creating YAML Files
-
-To create a YAML file from a Ruby hash:
-
-```ruby
-hash  = { 'a' => 1, 'b' => 2 }
-lines = ImmosquareYaml.dump(hash)
-File.write('path/to/your/file.yml', lines)
-```
+`clean` is just `parse` + (optional sort) + `dump`, written to disk.
 
 ---
 
-### Rake Tasks
+## What it does NOT do
 
-For Rails users, there are two rake tasks provided to make YML file management simpler:
+- It does not preserve YAML comments. Psych drops them at parse time, and so does this gem.
+- It does not preserve YAML anchors (`&foo` / `*foo`) as anchors — they are resolved into duplicated values during parse. This is fine for translation files, which never use anchors in practice.
+- It does not handle multi-document streams (`---` separators with multiple docs). Only the first document is read.
+- It is not designed for arbitrary YAML — it is tuned for Rails translation files. If your file has Ruby objects, custom tags, or complex anchors, use Psych directly.
 
-1. **Cleaning**: Cleans all translation files within your Rails application:
-
-```bash
-rake immosquare_yaml:clean
-```
-
+---
 
 ## Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request on our [GitHub repository](https://github.com/immosquare/immosquare-yaml).
+Issues and pull requests welcome at [github.com/immosquare/immosquare-yaml](https://github.com/immosquare/immosquare-yaml).
+
+The test suite lives in `spec/`. Run it with:
+
+```bash
+bundle exec rspec
+```
+
+Edge-case fixtures live in `spec/fixtures/edge_cases.fr.yml` and exercise: the Norway problem, numeric keys, deep nesting, Rails interpolation, pluralization, inline HTML, emojis, typographic quote normalization, folded scalars, literal blocks, lists, special leading characters, quoting triggers, null values, formatted prices, and various key naming conventions.
+
+---
 
 ## License
 
-This gem is available under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+MIT — see [LICENSE](LICENSE).
