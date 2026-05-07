@@ -38,7 +38,7 @@ clean(file) = parse + (sort) + dump → write
 1. **Norway problem** — `yes`/`no`/`on`/`off`/`true`/`false` in plain style stay as `String` on parse, and are quoted on dump so they round-trip as String.
 2. **Deterministic ordering** — keys sorted alphabetically by default (`sort: false` to keep insertion order).
 3. **Literal blocks preserved** — any string containing `\n` is re-emitted as `|` (with trailing `\n`) or `|-` (without trailing `\n`).
-4. **Minimal quoting** — plain by default. Single-quoted as soon as quoting is needed. Double-quoted only if the value contains `'`, `\`, or `\t`.
+4. **Minimal quoting** — plain by default. Double-quoted as soon as quoting is needed. Single-quoted only if the value contains `"` or `\` (and no `\t`).
 5. **`\U0001F600` decoding** — converted to UTF-8 emoji on dump.
 
 ## Output formatting rules
@@ -50,7 +50,7 @@ clean(file) = parse + (sort) + dump → write
 - **Scalar values**:
   - String containing `\n` → literal block `|` or `|-`
   - String with a quoting trigger (`: `, ` #`, YAML-special start, trailing `:`, edge whitespace, reserved word) → quoted
-  - Style choice: **single-quoted by default**; double-quoted only if the value contains `'`, `\` or `\t`
+  - Style choice: **double-quoted by default**; single-quoted only if the value contains `"` or `\` (and no `\t`, which can only be encoded in double-quoted form)
   - Otherwise plain
 - **`nil`** → literal `null`
 - **`Array`** → delegated to `Psych.dump` then re-indented

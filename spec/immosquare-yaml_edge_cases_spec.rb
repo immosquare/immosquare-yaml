@@ -355,13 +355,13 @@ describe("ImmosquareYaml — edge cases") do
     it("quotes values with internal ': '") do
       ImmosquareYaml.clean(work)
       content = File.read(work)
-      expect(content).to(match(/colon_internal: '.*: avec/))
+      expect(content).to(match(/colon_internal: ".*: avec/))
     end
 
     it("quotes values ending with ':'") do
       ImmosquareYaml.clean(work)
       content = File.read(work)
-      expect(content).to(match(/ends_with_colon: '.*:'/))
+      expect(content).to(match(/ends_with_colon: ".*:"/))
     end
 
     it("quotes values with leading/trailing whitespace") do
@@ -374,7 +374,7 @@ describe("ImmosquareYaml — edge cases") do
     it("quotes empty strings") do
       ImmosquareYaml.clean(work)
       content = File.read(work)
-      expect(content).to(match(/empty_string: ''/))
+      expect(content).to(match(/empty_string: ""/))
     end
   end
 

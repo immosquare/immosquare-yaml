@@ -314,16 +314,17 @@ module ImmosquareYaml
 
       ##============================================================##
       ## Choix du style de quoting :
-      ##   - single-quoted par défaut (plus léger, pas d'escapes)
-      ##   - double-quoted seulement si la valeur contient une
-      ##     apostrophe ou un caractère qui nécessite un escape
-      ##     (\, tab). Cela minimise les diffs git sur les fichiers
-      ##     existants et améliore la lisibilité (HTML notamment).
+      ##   - double-quoted par défaut (cohérent avec la règle Ruby
+      ##     globale "double quotes obligatoires")
+      ##   - single-quoted seulement si la valeur contient un " ou
+      ##     un \ (qui devraient être échappés en double-quoted),
+      ##     sauf si la valeur contient aussi un \t qui ne peut être
+      ##     représenté qu'en double-quoted.
       ##============================================================##
-      if value.include?(SIMPLE_QUOTE) || value.include?("\\") || value.include?("\t")
-        yaml_double_quote(value)
+      if (value.include?(DOUBLE_QUOTE) || value.include?("\\")) && !value.include?("\t")
+        yaml_single_quote(value)
       else
-        "#{SIMPLE_QUOTE}#{value}#{SIMPLE_QUOTE}"
+        yaml_double_quote(value)
       end
     end
 
@@ -335,6 +336,16 @@ module ImmosquareYaml
     def yaml_double_quote(value)
       escaped = value.gsub("\\", "\\\\\\\\").gsub("\"", '\\"').gsub("\t", '\\t')
       "\"#{escaped}\""
+    end
+
+    ##============================================================##
+    ## Échappe une string pour la sérialiser en YAML single-quoted.
+    ## En single-quoted, le seul caractère à échapper est l'apostrophe
+    ## elle-même, doublée. Ni \, ni " ne sont interprétés.
+    ##============================================================##
+    def yaml_single_quote(value)
+      escaped = value.gsub(SIMPLE_QUOTE, DOUBLE_SIMPLE_QUOTE)
+      "#{SIMPLE_QUOTE}#{escaped}#{SIMPLE_QUOTE}"
     end
 
     ##============================================================##

@@ -146,22 +146,35 @@ describe(ImmosquareYaml) do
 
     it("quotes values that contain ': '") do
       yaml = ImmosquareYaml.dump({"k" => "Hello: world"})
-      expect(yaml).to(include("'Hello: world'"))
+      expect(yaml).to(include("\"Hello: world\""))
     end
 
-    it("uses single-quoted by default and double-quoted only when necessary") do
+    it("uses double-quoted by default and single-quoted only when necessary") do
       ##============================================================##
-      ## Pas d'apostrophe interne, pas d'escape → single-quoted.
+      ## Cas standard → double-quoted (cohérent avec la règle Ruby
+      ## "double quotes obligatoires").
       ##============================================================##
       yaml = ImmosquareYaml.dump({"k" => "Hello: world"})
-      expect(yaml).to(include("'Hello: world'"))
+      expect(yaml).to(include("\"Hello: world\""))
 
       ##============================================================##
-      ## Apostrophe interne → double-quoted (sinon il faudrait
-      ## doubler les ' à l'intérieur d'un single-quoted).
+      ## Apostrophe interne → reste en double-quoted (pas besoin
+      ## d'échapper l'apostrophe).
       ##============================================================##
       yaml = ImmosquareYaml.dump({"k" => "L'utilisateur: connecté"})
       expect(yaml).to(include("\"L'utilisateur: connecté\""))
+
+      ##============================================================##
+      ## Backslash interne → single-quoted (évite \\\\).
+      ##============================================================##
+      yaml = ImmosquareYaml.dump({"k" => "path\\to: file"})
+      expect(yaml).to(include("'path\\to: file'"))
+
+      ##============================================================##
+      ## Double-quote interne → single-quoted (évite \").
+      ##============================================================##
+      yaml = ImmosquareYaml.dump({"k" => "say \"hi\": now"})
+      expect(yaml).to(include("'say \"hi\": now'"))
     end
 
     it("renders multi-line strings as literal blocks") do
