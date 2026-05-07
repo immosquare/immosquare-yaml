@@ -1,3 +1,8 @@
+## [1.0.1] - 2026-05-07
+
+### Changed
+- `dump`: invert default scalar quoting style. Values needing quotes are now emitted double-quoted by default; single-quoted is reserved for values containing `"` or `\` (and no `\t`). Aligns YAML output with the project-wide Ruby double-quote convention.
+
 ## [1.0.0] - 2026-05-07
 
 ### Changed
