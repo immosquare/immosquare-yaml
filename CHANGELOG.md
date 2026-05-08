@@ -1,3 +1,9 @@
+## [1.0.2] - 2026-05-08
+
+### Added
+- `flatten_keys(input, **options)`: flatten a Hash, a YAML file path, or an `Array<String>` of paths into sorted dot-separated paths. Reserved YAML 1.1 segments (`yes`/`no`/`true`/...) and purely numeric segments are quoted in the output for safe round-tripping. Optional `with_values` and `with_file` return `[path, value]`, `[path, file]` or `[path, value, file]` tuples. Empty nested hashes are skipped. Sort is deterministic across multi-file inputs (ties broken by source file).
+- `parse_path(dot_path)`: symmetric inverse of `flatten_keys` segment quoting — returns an `Array<String>` ready for `Hash#dig` on a hash returned by `parse`.
+
 ## [1.0.1] - 2026-05-07
 
 ### Changed
