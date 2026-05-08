@@ -28,13 +28,15 @@ bundle install
 
 ## Public API
 
-| Method                                                 | Returns   | Purpose                                                                                  |
-| ------------------------------------------------------ | --------- | ---------------------------------------------------------------------------------------- |
-| `ImmosquareYaml.parse(path, sort: true)`               | `Hash`    | Parse a YAML file into a Ruby hash. Sorted by key by default.                            |
-| `ImmosquareYaml.clean(path, sort: true, output: path)` | `Boolean` | Parse, sort, re-emit. Overwrites the file by default; pass `:output` to write elsewhere. |
-| `ImmosquareYaml.dump(hash)`                            | `String`  | Serialize a Ruby hash to a YAML string with the same formatting rules as `clean`.        |
+| Method                                                 | Returns          | Purpose                                                                                  |
+| ------------------------------------------------------ | ---------------- | ---------------------------------------------------------------------------------------- |
+| `ImmosquareYaml.parse(path, sort: true)`               | `Hash`           | Parse a YAML file into a Ruby hash. Sorted by key by default.                            |
+| `ImmosquareYaml.clean(path, sort: true, output: path)` | `Boolean`        | Parse, sort, re-emit. Overwrites the file by default; pass `:output` to write elsewhere. |
+| `ImmosquareYaml.dump(hash)`                            | `String`         | Serialize a Ruby hash to a YAML string with the same formatting rules as `clean`.        |
+| `ImmosquareYaml.flatten_keys(input, **options)`        | `Array`          | Flatten a hash or YAML file path(s) into dot-separated paths.                            |
+| `ImmosquareYaml.parse_path(dot_path)`                  | `Array<String>`  | Inverse of `flatten_keys` segment quoting — produces an array usable with `Hash#dig`.    |
 
-All three preserve the five guarantees below.
+`parse`, `clean` and `dump` preserve the guarantees below. `flatten_keys` and `parse_path` are flat-path utilities built on top of `parse` and inherit them transitively.
 
 ---
 
@@ -154,6 +156,100 @@ yaml = ImmosquareYaml.dump({
 })
 
 File.write("config/locales/en.yml", yaml)
+```
+
+### Flatten keys
+
+`flatten_keys` turns nested translation data into a flat list of dot-separated paths. It accepts any of the following:
+
+- a `Hash` — flattened directly, no I/O
+- a single file path (`String`)
+- an `Array<String>` of file paths
+
+Globs are not expanded — pass `Dir.glob(...)` upstream if you need that. Mixing a `Hash` with file paths in the same call is not supported.
+
+Reserved YAML 1.1 segments (`yes`, `no`, `true`, `false`, `on`, `off`, ...) and purely numeric segments (`"42"`) are wrapped in double quotes inside the resulting paths so they can be re-fed to `I18n.t` or written back to YAML without ambiguity. Empty nested hashes are skipped (no path emitted).
+
+```ruby
+##============================================================##
+## From a Hash
+##============================================================##
+hash = {
+  "fr" => {
+    "app" => {
+      "title" => "Titre",
+      "body"  => "Corps"
+    }
+  }
+}
+
+ImmosquareYaml.flatten_keys(hash)
+# => ["fr.app.body", "fr.app.title"]
+
+##============================================================##
+## From a single file
+##============================================================##
+ImmosquareYaml.flatten_keys("config/locales/fr.yml")
+# => ["fr.app.body", "fr.app.title", "fr.app.welcome", ...]
+
+##============================================================##
+## From an Array of file paths (expand globs upstream)
+##============================================================##
+ImmosquareYaml.flatten_keys(Dir.glob("config/locales/**/*.yml"))
+# => ["en.app.body", "en.app.title", "fr.app.body", "fr.app.title", ...]
+
+##============================================================##
+## With values (every leaf is kept, no dedup)
+##============================================================##
+ImmosquareYaml.flatten_keys(hash, :with_values => true)
+# => [["fr.app.body", "Corps"], ["fr.app.title", "Titre"]]
+
+##============================================================##
+## With source file (added as third element when combined
+## with :with_values, or as second element on its own)
+##============================================================##
+ImmosquareYaml.flatten_keys("config/locales/fr.yml", :with_file => true)
+# => [["fr.app.body", "config/locales/fr.yml"], ...]
+
+ImmosquareYaml.flatten_keys(hash, :with_values => true, :with_file => true)
+# => [["fr.app.body", "Corps", nil], ["fr.app.title", "Titre", nil]]
+##  ^^ file is nil for entries coming from a Hash
+```
+
+Reserved and numeric keys are quoted in the output:
+
+```ruby
+hash = {"fr" => {"statuses" => {"yes" => "Oui", "42" => "x"}}}
+ImmosquareYaml.flatten_keys(hash)
+# => ["fr.statuses.\"42\"", "fr.statuses.\"yes\""]
+```
+
+### Parse a dot-path
+
+`parse_path` is the symmetric inverse of the segment quoting done by `flatten_keys`. It splits a dot-path on `.` and strips wrapping `"..."` from quoted segments, returning an `Array<String>` ready to be passed to `Hash#dig` on a hash returned by `ImmosquareYaml.parse`.
+
+> Limitation: keys containing a literal `.` are not supported — the dot is always treated as a segment separator.
+
+```ruby
+ImmosquareYaml.parse_path("fr.app.title")
+# => ["fr", "app", "title"]
+
+ImmosquareYaml.parse_path("fr.statuses.\"yes\"")
+# => ["fr", "statuses", "yes"]
+
+ImmosquareYaml.parse_path("fr.counts.\"42\"")
+# => ["fr", "counts", "42"]
+```
+
+Round-trip example:
+
+```ruby
+hash = ImmosquareYaml.parse("config/locales/fr.yml")
+
+ImmosquareYaml.flatten_keys(hash).each do |path|
+  value = hash.dig(*ImmosquareYaml.parse_path(path))
+  puts "#{path} = #{value.inspect}"
+end
 ```
 
 ---

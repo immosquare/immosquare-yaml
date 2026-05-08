@@ -21,17 +21,52 @@ dump(hash)
             └─ otherwise             → plain
 
 clean(file) = parse + (sort) + dump → write
+
+flatten_keys(input)
+  └─ Hash | String path | Array<String> path
+  └─ flatten_hash (per src)  # walks hash, builds [path, value, file] entries
+       └─ quote_segment      # quotes RESERVED_KEYS / numeric segments
+       └─ skips empty nested Hashes
+  └─ format_entries          # filters/sorts according to with_values/with_file
+
+parse_path(dot_path)
+  └─ String#split(".") + unquote_segment per token  # inverse of quote_segment
 ```
 
 **Key point**: we do not rewrite a homemade YAML parser. We rely on Psych for reading (AST) and do our own serialization to control the output format.
 
 ## Public API
 
-| Method                                            | Description                                                                       |
-| ------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `parse(file_path, sort: true)`                    | YAML file → Ruby hash. Returns `{}` for an empty file, `false` on error.          |
-| `clean(file_path, sort: true, output: file_path)` | Sanitize YAML file (parse + sort + dump).                                         |
-| `dump(hash)`                                      | Ruby hash → YAML string.                                                          |
+| Method                                            | Description                                                                                    |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `parse(file_path, sort: true)`                    | YAML file → Ruby hash. Returns `{}` for an empty file, `false` on error.                       |
+| `clean(file_path, sort: true, output: file_path)` | Sanitize YAML file (parse + sort + dump).                                                      |
+| `dump(hash)`                                      | Ruby hash → YAML string.                                                                       |
+| `flatten_keys(input, **options)`                  | Hash / file path / Array<String> of paths → list of dot-paths (optionally with values / file). |
+| `parse_path(dot_path)`                            | Inverse of `flatten_keys` segment quoting → `Array<String>` ready for `Hash#dig`.              |
+
+### `flatten_keys` — accepted inputs
+
+- `Hash` — flattened directly, no I/O. `with_file: true` puts `nil` as the file column.
+- `String` — a single YAML file path. Missing/empty/unreadable files are silently skipped.
+- `Array<String>` — list of YAML file paths.
+
+Globs are NOT expanded — callers expand them upstream (e.g. `Dir.glob`). Mixing a `Hash` with file paths in the same call is not supported.
+
+### `flatten_keys` — options
+
+- `with_values: false` (default) → `Array<String>` of paths, sorted + deduplicated.
+- `with_values: true` → `Array<[path, value]>`, sorted by path, **not** deduplicated.
+- `with_file: true` → adds the source file path. Combined with `with_values: true` returns triplets `[path, value, file]`. For Hash inputs, `file` is `nil`.
+
+### Path quoting (round-trip with `parse_path`)
+
+- Segments matching `SharedMethods::RESERVED_KEYS` (`yes`, `no`, `true`, `false`, `on`, `off`, ...) → wrapped in `"..."`.
+- Segments matching `/\A[-+]?\d+\z/` (purely numeric) → wrapped in `"..."`.
+- All other segments → emitted plain.
+- Empty nested Hashes are skipped (no leaf emitted).
+- `parse_path` strips wrapping `"..."` from any segment, so `flatten_keys` → `parse_path` → `Hash#dig` round-trips on the parsed YAML hash.
+- Limitation: keys containing a literal `.` are not supported (treated as a segment separator).
 
 ## Guarantees (the 5 criteria that justify this gem)
 
@@ -62,10 +97,11 @@ clean(file) = parse + (sort) + dump → write
 bundle exec rspec
 ```
 
-Suite: 71 tests across 2 spec files.
+Suite: 92 tests across 3 spec files.
 
 - `spec/immosquare-yaml_spec.rb` — tests of the public API (parse/clean/dump) against `sample.en.yml` + `edge_cases.fr.yml`
 - `spec/immosquare-yaml_edge_cases_spec.rb` — 53 assertions across 21 edge-case categories (Norway, numeric keys, deep nesting, interpolations, pluralization, HTML, emojis, typographic quotes, folded scalars, literal blocks, lists, special characters, quoting, null, currencies, naming)
+- `spec/immosquare-yaml_flatten_keys_spec.rb` — `flatten_keys` (Hash / file / Array<String>, with_values, with_file, reserved & numeric quoting, empty Hash skip) and `parse_path` (split + unquote, symmetric round-trip with `Hash#dig`)
 
 All test artifacts are written to `Dir.mktmpdir` (auto-cleanup), never inside the gem's tree.
 
