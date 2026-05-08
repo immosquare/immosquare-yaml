@@ -156,14 +156,6 @@ yaml = ImmosquareYaml.dump({
 File.write("config/locales/en.yml", yaml)
 ```
 
-### Rails rake task
-
-In a Rails app, the gem ships a rake task that cleans every file under `config/locales/**/*.yml`:
-
-```bash
-bundle exec rake immosquare_yaml:clean
-```
-
 ---
 
 ## How it works

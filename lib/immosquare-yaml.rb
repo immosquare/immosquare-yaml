@@ -2,7 +2,6 @@ require          "psych"
 require          "fileutils"
 require          "immosquare-extensions"
 require_relative "immosquare-yaml/shared_methods"
-require_relative "immosquare-yaml/railtie" if defined?(Rails)
 
 ##============================================================##
 ## ImmosquareYaml — post-processeur Psych dédié aux fichiers
