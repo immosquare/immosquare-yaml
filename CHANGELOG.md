@@ -1,3 +1,8 @@
+## [1.0.3] - 2026-05-08
+
+### Added
+- `delete_paths(file_path, paths, **options)`: remove one or more dot-paths from a YAML file. Accepts a single path or an `Array<String>`, deletes the leaves, prunes empty parent maps recursively, and rewrites the file through `dump` (sort and formatting preserved). Returns a `{:deleted, :not_found}` report. Reserved (`yes`/`no`/...) and purely numeric segments must be quoted in the dot-path, consistent with `flatten_keys` / `parse_path`.
+
 ## [1.0.2] - 2026-05-08
 
 ### Added
