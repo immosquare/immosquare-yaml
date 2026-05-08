@@ -3,6 +3,7 @@ require          "fileutils"
 require          "immosquare-extensions"
 require_relative "immosquare-yaml/shared_methods"
 require_relative "immosquare-yaml/flatten"
+require_relative "immosquare-yaml/delete"
 
 ##============================================================##
 ## ImmosquareYaml — post-processeur Psych dédié aux fichiers

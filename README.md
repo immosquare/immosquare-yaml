@@ -35,8 +35,9 @@ bundle install
 | `ImmosquareYaml.dump(hash)`                            | `String`         | Serialize a Ruby hash to a YAML string with the same formatting rules as `clean`.        |
 | `ImmosquareYaml.flatten_keys(input, **options)`        | `Array`          | Flatten a hash or YAML file path(s) into dot-separated paths.                            |
 | `ImmosquareYaml.parse_path(dot_path)`                  | `Array<String>`  | Inverse of `flatten_keys` segment quoting — produces an array usable with `Hash#dig`.    |
+| `ImmosquareYaml.delete_paths(path, paths, **options)`  | `Hash` / `false` | Remove one or more dot-paths from a YAML file, prune empty parents, rewrite via `dump`.  |
 
-`parse`, `clean` and `dump` preserve the guarantees below. `flatten_keys` and `parse_path` are flat-path utilities built on top of `parse` and inherit them transitively.
+`parse`, `clean` and `dump` preserve the guarantees below. `flatten_keys`, `parse_path` and `delete_paths` are flat-path utilities built on top of `parse` and inherit them transitively.
 
 ---
 
@@ -251,6 +252,36 @@ ImmosquareYaml.flatten_keys(hash).each do |path|
   puts "#{path} = #{value.inspect}"
 end
 ```
+
+### Delete paths
+
+`delete_paths` removes one or more dot-paths from a YAML file. The file is parsed, leaves are deleted, empty parent maps are pruned recursively, and the result is rewritten through `dump` so the formatting (sort, quoting, literal blocks) is preserved.
+
+It accepts a single path or an `Array<String>`. Reserved (`yes`, `no`, `true`, ...) and purely numeric segments must be wrapped in `"..."`, exactly like the output of `flatten_keys`.
+
+```ruby
+##  Remove a single key
+ImmosquareYaml.delete_paths("config/locales/fr.yml", "fr.app.leases.statuses.archived")
+##  => { :deleted => ["fr.app.leases.statuses.archived"], :not_found => [] }
+
+##  Remove several at once — empty parents are pruned automatically
+ImmosquareYaml.delete_paths("config/locales/fr.yml", [
+  "fr.app.leases.title",
+  "fr.app.leases.statuses.active",
+  "fr.app.leases.statuses.archived"
+])
+##  => { :deleted => [...], :not_found => [...] }
+
+##  Reserved or numeric segments are quoted in the dot-path
+ImmosquareYaml.delete_paths("config/locales/fr.yml", "fr.statuses.\"yes\"")
+
+##  Write to a different output instead of overwriting in place
+ImmosquareYaml.delete_paths("config/locales/fr.yml", "fr.app.foo", :output => "tmp/cleaned.fr.yml")
+```
+
+Returns `false` if the file cannot be parsed (or if its root is not a mapping). Returns `{:deleted, :not_found}` otherwise — paths that don't exist in the file are simply reported in `:not_found`, never raised.
+
+> **Note** : the file is always rewritten through `dump`, even when every path is reported as `:not_found`. Calling `delete_paths` therefore doubles as a `clean` (sort + reformat) on the target file. Pass `:output => "..."` if you want to write elsewhere instead of overwriting in place.
 
 ---
 
