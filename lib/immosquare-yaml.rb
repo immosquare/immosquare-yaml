@@ -1,7 +1,6 @@
 require          "psych"
 require          "fileutils"
 require          "immosquare-extensions"
-require_relative "immosquare-yaml/configuration"
 require_relative "immosquare-yaml/shared_methods"
 require_relative "immosquare-yaml/railtie" if defined?(Rails)
 
@@ -26,16 +25,6 @@ module ImmosquareYaml
   extend SharedMethods
 
   class << self
-
-    attr_writer :configuration
-
-    def configuration
-      @configuration ||= Configuration.new
-    end
-
-    def config
-      yield(configuration)
-    end
 
     ##============================================================##
     ## clean(file_path, sort: true, output: file_path)
