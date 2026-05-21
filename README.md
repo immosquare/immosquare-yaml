@@ -277,6 +277,9 @@ ImmosquareYaml.delete_paths("config/locales/fr.yml", "fr.statuses.\"yes\"")
 
 ##  Write to a different output instead of overwriting in place
 ImmosquareYaml.delete_paths("config/locales/fr.yml", "fr.app.foo", :output => "tmp/cleaned.fr.yml")
+
+##  Keep insertion order instead of sorting (default: sort: true)
+ImmosquareYaml.delete_paths("config/locales/fr.yml", "fr.app.foo", :sort => false)
 ```
 
 Returns `false` if the file cannot be parsed (or if its root is not a mapping). Returns `{:deleted, :not_found}` otherwise — paths that don't exist in the file are simply reported in `:not_found`, never raised.
@@ -329,4 +332,4 @@ Edge-case fixtures live in `spec/fixtures/edge_cases.fr.yml` and exercise: the N
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT.

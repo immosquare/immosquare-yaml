@@ -110,7 +110,7 @@ bundle exec rspec
 Suite: 102 tests across 4 spec files.
 
 - `spec/immosquare-yaml_spec.rb` — tests of the public API (parse/clean/dump) against `sample.en.yml` + `edge_cases.fr.yml`
-- `spec/immosquare-yaml_edge_cases_spec.rb` — 53 assertions across 21 edge-case categories (Norway, numeric keys, deep nesting, interpolations, pluralization, HTML, emojis, typographic quotes, folded scalars, literal blocks, lists, special characters, quoting, null, currencies, naming)
+- `spec/immosquare-yaml_edge_cases_spec.rb` — 53 examples across 16 edge-case categories (Norway, numeric keys, deep nesting, interpolations, pluralization, HTML, emojis, typographic quotes, folded scalars, literal blocks, lists, special characters, quoting, null, currencies, naming) + a global-pipeline sanity check
 - `spec/immosquare-yaml_flatten_keys_spec.rb` — `flatten_keys` (Hash / file / Array<String>, with_values, with_file, reserved & numeric quoting, empty Hash skip) and `parse_path` (split + unquote, symmetric round-trip with `Hash#dig`)
 - `spec/immosquare-yaml_delete_paths_spec.rb` — `delete_paths` (single/array, deleted vs not_found report, empty-parent pruning, reserved & numeric segments, separate output path, missing file, empty file, format preservation)
 
