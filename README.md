@@ -1,3 +1,10 @@
+---
+locale: en
+tags:
+  - app:immosquare-yaml
+  - audience:technique
+---
+
 # ImmosquareYaml
 
 A thin Psych post-processor for Rails translation files (`config/locales/*.yml`).
