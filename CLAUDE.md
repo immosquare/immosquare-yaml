@@ -116,6 +116,18 @@ Suite: 102 tests across 4 spec files.
 
 All test artifacts are written to `Dir.mktmpdir` (auto-cleanup), never inside the gem's tree.
 
+## Coverage & CI
+
+```bash
+COVERAGE=true bundle exec rspec   # SimpleCov → coverage/lcov.info + HTML report
+bin/ci init                       # bundle install, as the build agent runs it
+bin/ci test                       # bundle exec rspec, as the build agent runs it
+```
+
+`spec/coverage_helper.rb` is a no-op unless `COVERAGE=true`, and `.rspec` requires it **before** `spec_helper` so the library is loaded after SimpleCov starts — invert that order and coverage reports 0%.
+
+`bin/ci` skips its RVM / bundler-pinning block when `JENKINS_WORKSPACE` is unset, and always exports `BUNDLE_WITHOUT=development`. Anything the specs need therefore goes in the `test` group of the Gemfile, never in `development`. `Jenkinsfile` sets `COVERAGE=true` and feeds `coverage/lcov.info` to the Jenkins coverage plugin.
+
 ## Rake Tasks (dev)
 
 ```bash

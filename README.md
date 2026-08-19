@@ -31,6 +31,8 @@ gem "immosquare-yaml"
 bundle install
 ```
 
+Requires Ruby >= 3.2.6. The only runtime dependency is [immosquare-extensions](https://github.com/immosquare/immosquare-extensions).
+
 ---
 
 ## Public API
@@ -334,6 +336,27 @@ bundle exec rspec
 ```
 
 Edge-case fixtures live in `spec/fixtures/edge_cases.fr.yml` and exercise: the Norway problem, numeric keys, deep nesting, Rails interpolation, pluralization, inline HTML, emojis, typographic quote normalization, folded scalars, literal blocks, lists, special leading characters, quoting triggers, null values, formatted prices, and various key naming conventions.
+
+### Coverage
+
+Coverage is off by default, so a plain `rspec` run stays fast and leaves no `coverage/` directory behind. Set `COVERAGE=true` to turn it on:
+
+```bash
+COVERAGE=true bundle exec rspec
+```
+
+SimpleCov then writes `coverage/lcov.info` and an HTML report under `coverage/`. Branch coverage is enabled and `spec/` is filtered out. `spec/coverage_helper.rb` is loaded before `spec_helper` (see the order of the `--require` lines in `.rspec`) so that the library is measured from its first line — a file already required by the time SimpleCov starts reports 0%.
+
+### Continuous integration
+
+`bin/ci` is the entry point used by the build agent, and it works the same on a laptop:
+
+```bash
+bin/ci init   # bundle install
+bin/ci test   # bundle exec rspec
+```
+
+Everything specific to the build agent — RVM, installing the Ruby named in `.ruby-version` into the `.ruby-gemset` gemset, pinning bundler — is skipped when `JENKINS_WORKSPACE` is unset. The script always exports `BUNDLE_WITHOUT=development`, so **anything the specs need belongs to the `test` group of the Gemfile**, never to `development`. The pipeline itself lives in `Jenkinsfile`: it exports `COVERAGE=true` and publishes `coverage/lcov.info` to the Jenkins coverage plugin.
 
 ---
 
