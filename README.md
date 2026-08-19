@@ -21,7 +21,7 @@ ImmosquareYaml takes a YAML file in, returns a Hash, or writes back a clean, sor
 
 ---
 
-## Installation
+## Installing immosquare-yaml and its public API
 
 ```ruby
 gem "immosquare-yaml"
@@ -33,9 +33,7 @@ bundle install
 
 Requires Ruby >= 3.2.6. The only runtime dependency is [immosquare-extensions](https://github.com/immosquare/immosquare-extensions).
 
----
-
-## Public API
+The table below lists every public method of `ImmosquareYaml`, what it returns, and what it is used for.
 
 | Method                                                 | Returns          | Purpose                                                                                  |
 | ------------------------------------------------------ | ---------------- | ---------------------------------------------------------------------------------------- |
@@ -46,13 +44,13 @@ Requires Ruby >= 3.2.6. The only runtime dependency is [immosquare-extensions](h
 | `ImmosquareYaml.parse_path(dot_path)`                  | `Array<String>`  | Inverse of `flatten_keys` segment quoting — produces an array usable with `Hash#dig`.    |
 | `ImmosquareYaml.delete_paths(path, paths, **options)`  | `Hash` / `false` | Remove one or more dot-paths from a YAML file, prune empty parents, rewrite via `dump`.  |
 
-`parse`, `clean` and `dump` preserve the guarantees below. `flatten_keys`, `parse_path` and `delete_paths` are flat-path utilities built on top of `parse` and inherit them transitively.
+`parse`, `clean` and `dump` preserve the five guarantees described in "What ImmosquareYaml guarantees". `flatten_keys`, `parse_path` and `delete_paths` are flat-path utilities built on top of `parse` and inherit them transitively.
 
 ---
 
-## What it guarantees
+## What ImmosquareYaml guarantees
 
-### 1. Norway problem — reserved words stay strings
+**1. Norway problem — reserved words stay strings**
 
 ```yaml
 # input
@@ -86,11 +84,11 @@ en:
   "yes": This is not a boolean
 ```
 
-### 2. Deterministic key order
+**2. Deterministic key order**
 
 Keys are sorted alphabetically by default. Stable diffs, no merge conflicts on key reorders. Pass `sort: false` to keep insertion order.
 
-### 3. Literal block scalars (`|` and `|-`) preserved
+**3. Literal block scalars (`|` and `|-`) preserved**
 
 ```yaml
 # input
@@ -103,13 +101,13 @@ en:
 
 `parse` returns `"Line 1.\nLine 2.\nLine 3.\n"`, and `clean` re-emits the exact same `|` block.
 
-### 4. Minimal quoting
+**4. Minimal quoting**
 
 Strings are emitted plain whenever YAML allows it. Quotes appear only when the value would be ambiguous: contains `: `, ` #`, leading or trailing whitespace, starts with a YAML special character, ends with `:`, or matches a reserved word.
 
 When quoting is required, double-quoted is used by default. Single-quoted is used only when the value contains `"` or `\` (and no `\t`, which can only be encoded in double-quoted form).
 
-### 5. Unicode escapes decoded
+**5. Unicode escapes decoded**
 
 ```yaml
 # input
@@ -125,18 +123,20 @@ en:
 
 ---
 
-## Usage
+## Parsing, cleaning and dumping with ImmosquareYaml
 
-### Parse
+`ImmosquareYaml.parse` and `ImmosquareYaml.clean` take a YAML file path; `ImmosquareYaml.dump` takes a Ruby hash and returns a YAML string.
+
+**Parse**
 
 ```ruby
 hash = ImmosquareYaml.parse("config/locales/en.yml")
 hash = ImmosquareYaml.parse("config/locales/en.yml", :sort => false)
 ```
 
-Returns `false` if the file does not exist or cannot be parsed. Returns `{}` for empty files.
+`ImmosquareYaml.parse` returns `false` if the file does not exist or cannot be parsed. It returns `{}` for empty files.
 
-### Clean
+**Clean**
 
 ```ruby
 ##============================================================##
@@ -155,7 +155,7 @@ ImmosquareYaml.clean("config/locales/en.yml", :output => "tmp/cleaned.yml")
 ImmosquareYaml.clean("config/locales/en.yml", :sort => false)
 ```
 
-### Dump
+**Dump**
 
 ```ruby
 yaml = ImmosquareYaml.dump({
@@ -168,9 +168,11 @@ yaml = ImmosquareYaml.dump({
 File.write("config/locales/en.yml", yaml)
 ```
 
-### Flatten keys
+---
 
-`flatten_keys` turns nested translation data into a flat list of dot-separated paths. It accepts any of the following:
+## Dot-paths — `flatten_keys` and its inverse `parse_path`
+
+`ImmosquareYaml.flatten_keys` turns nested translation data into a flat list of dot-separated paths. It accepts any of the following:
 
 - a `Hash` — flattened directly, no I/O
 - a single file path (`String`)
@@ -179,6 +181,8 @@ File.write("config/locales/en.yml", yaml)
 Globs are not expanded — pass `Dir.glob(...)` upstream if you need that. Mixing a `Hash` with file paths in the same call is not supported.
 
 Reserved YAML 1.1 segments (`yes`, `no`, `true`, `false`, `on`, `off`, ...) and purely numeric segments (`"42"`) are wrapped in double quotes inside the resulting paths so they can be re-fed to `I18n.t` or written back to YAML without ambiguity. Empty nested hashes are skipped (no path emitted).
+
+The snippets below show each accepted input and each option of `flatten_keys`, with the returned array as a comment.
 
 ```ruby
 ##============================================================##
@@ -234,9 +238,7 @@ ImmosquareYaml.flatten_keys(hash)
 # => ["fr.statuses.\"42\"", "fr.statuses.\"yes\""]
 ```
 
-### Parse a dot-path
-
-`parse_path` is the symmetric inverse of the segment quoting done by `flatten_keys`. It splits a dot-path on `.` and strips wrapping `"..."` from quoted segments, returning an `Array<String>` ready to be passed to `Hash#dig` on a hash returned by `ImmosquareYaml.parse`.
+`ImmosquareYaml.parse_path` is the symmetric inverse of the segment quoting done by `flatten_keys`. It splits a dot-path on `.` and strips wrapping `"..."` from quoted segments, returning an `Array<String>` ready to be passed to `Hash#dig` on a hash returned by `ImmosquareYaml.parse`.
 
 > Limitation: keys containing a literal `.` are not supported — the dot is always treated as a segment separator.
 
@@ -251,7 +253,7 @@ ImmosquareYaml.parse_path("fr.counts.\"42\"")
 # => ["fr", "counts", "42"]
 ```
 
-Round-trip example:
+Round-trip example, walking every leaf of a parsed file through `flatten_keys` and back through `parse_path`:
 
 ```ruby
 hash = ImmosquareYaml.parse("config/locales/fr.yml")
@@ -262,11 +264,15 @@ ImmosquareYaml.flatten_keys(hash).each do |path|
 end
 ```
 
-### Delete paths
+---
 
-`delete_paths` removes one or more dot-paths from a YAML file. The file is parsed, leaves are deleted, empty parent maps are pruned recursively, and the result is rewritten through `dump` so the formatting (sort, quoting, literal blocks) is preserved.
+## Deleting dot-paths from a YAML file with `delete_paths`
+
+`ImmosquareYaml.delete_paths` removes one or more dot-paths from a YAML file. The file is parsed, leaves are deleted, empty parent maps are pruned recursively, and the result is rewritten through `dump` so the formatting (sort, quoting, literal blocks) is preserved.
 
 It accepts a single path or an `Array<String>`. Reserved (`yes`, `no`, `true`, ...) and purely numeric segments must be wrapped in `"..."`, exactly like the output of `flatten_keys`.
+
+Each call below shows one calling form of `delete_paths` and, as a comment, the report it returns.
 
 ```ruby
 ##  Remove a single key
@@ -291,41 +297,41 @@ ImmosquareYaml.delete_paths("config/locales/fr.yml", "fr.app.foo", :output => "t
 ImmosquareYaml.delete_paths("config/locales/fr.yml", "fr.app.foo", :sort => false)
 ```
 
-Returns `false` if the file cannot be parsed (or if its root is not a mapping). Returns `{:deleted, :not_found}` otherwise — paths that don't exist in the file are simply reported in `:not_found`, never raised.
+`delete_paths` returns `false` if the file cannot be parsed (or if its root is not a mapping). It returns `{:deleted, :not_found}` otherwise — paths that don't exist in the file are simply reported in `:not_found`, never raised.
 
 > **Note** : the file is always rewritten through `dump`, even when every path is reported as `:not_found`. Calling `delete_paths` therefore doubles as a `clean` (sort + reformat) on the target file. Pass `:output => "..."` if you want to write elsewhere instead of overwriting in place.
 
 ---
 
-## How it works
+## How ImmosquareYaml works internally
 
-`parse` calls `Psych.parse_file` to get a YAML AST, then walks it:
+`ImmosquareYaml.parse` calls `Psych.parse_file` to get a YAML AST, then walks it:
 
 - `Psych::Nodes::Mapping` → Ruby `Hash` (keys always cast to `String`)
 - `Psych::Nodes::Sequence` → Ruby `Array`
 - `Psych::Nodes::Scalar` → `String`, `Integer`, `Float` or `nil`, with the Norway exception applied at the leaf
 
-`dump` walks the resulting hash and writes YAML manually:
+`ImmosquareYaml.dump` walks the resulting hash and writes YAML manually:
 
 - Reserved or numeric keys are wrapped in double quotes
 - Strings containing `\n` are emitted as `|` or `|-` blocks
 - Strings that would be ambiguous in plain form are double-quoted by default; values containing `"` or `\` (and no `\t`) are single-quoted instead, with `'` doubled
 - Arrays are delegated to `Psych.dump` and re-indented to match the surrounding block
 
-`clean` is just `parse` + (optional sort) + `dump`, written to disk.
+`ImmosquareYaml.clean` is just `parse` + (optional sort) + `dump`, written to disk.
 
 ---
 
-## What it does NOT do
+## What ImmosquareYaml does NOT do
 
-- It does not preserve YAML comments. Psych drops them at parse time, and so does this gem.
-- It does not preserve YAML anchors (`&foo` / `*foo`) as anchors — they are resolved into duplicated values during parse. This is fine for translation files, which never use anchors in practice.
-- It does not handle multi-document streams (`---` separators with multiple docs). Only the first document is read.
-- It is not designed for arbitrary YAML — it is tuned for Rails translation files. If your file has Ruby objects, custom tags, or complex anchors, use Psych directly.
+- ImmosquareYaml does not preserve YAML comments. Psych drops them at parse time, and so does this gem.
+- ImmosquareYaml does not preserve YAML anchors (`&foo` / `*foo`) as anchors — they are resolved into duplicated values during parse. This is fine for translation files, which never use anchors in practice.
+- ImmosquareYaml does not handle multi-document streams (`---` separators with multiple docs). Only the first document is read.
+- ImmosquareYaml is not designed for arbitrary YAML — it is tuned for Rails translation files. If your file has Ruby objects, custom tags, or complex anchors, use Psych directly.
 
 ---
 
-## Contributing
+## Contributing to immosquare-yaml — tests, coverage, CI and license
 
 Issues and pull requests welcome at [github.com/immosquare/immosquare-yaml](https://github.com/immosquare/immosquare-yaml).
 
@@ -337,7 +343,7 @@ bundle exec rspec
 
 Edge-case fixtures live in `spec/fixtures/edge_cases.fr.yml` and exercise: the Norway problem, numeric keys, deep nesting, Rails interpolation, pluralization, inline HTML, emojis, typographic quote normalization, folded scalars, literal blocks, lists, special leading characters, quoting triggers, null values, formatted prices, and various key naming conventions.
 
-### Coverage
+**Coverage**
 
 Coverage is off by default, so a plain `rspec` run stays fast and leaves no `coverage/` directory behind. Set `COVERAGE=true` to turn it on:
 
@@ -347,7 +353,7 @@ COVERAGE=true bundle exec rspec
 
 SimpleCov then writes `coverage/lcov.info` and an HTML report under `coverage/`. Branch coverage is enabled and `spec/` is filtered out. `spec/coverage_helper.rb` is loaded before `spec_helper` (see the order of the `--require` lines in `.rspec`) so that the library is measured from its first line — a file already required by the time SimpleCov starts reports 0%.
 
-### Continuous integration
+**Continuous integration**
 
 `bin/ci` is the entry point used by the build agent, and it works the same on a laptop:
 
@@ -358,8 +364,6 @@ bin/ci test   # bundle exec rspec
 
 Everything specific to the build agent — RVM, installing the Ruby named in `.ruby-version` into the `.ruby-gemset` gemset, pinning bundler — is skipped when `JENKINS_WORKSPACE` is unset. The script always exports `BUNDLE_WITHOUT=development`, so **anything the specs need belongs to the `test` group of the Gemfile**, never to `development`. The pipeline itself lives in `Jenkinsfile`: it exports `COVERAGE=true` and publishes `coverage/lcov.info` to the Jenkins coverage plugin.
 
----
+**License**
 
-## License
-
-MIT.
+immosquare-yaml is released under the MIT license.
