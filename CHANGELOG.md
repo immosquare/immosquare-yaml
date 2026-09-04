@@ -1,3 +1,8 @@
+## [1.0.4] - 2026-09-04
+
+### Fixed
+- `dump`: quote plain scalars that Psych would implicitly type. Strings such as `"36"`, `"3.14"`, `"null"` or `"02:14"` were re-emitted unquoted, so reloading the file turned them into an Integer, a Float, `nil` or a sexagesimal number. Any value Psych would not read back as a String is now quoted.
+
 ## [1.0.3] - 2026-05-08
 
 ### Added
