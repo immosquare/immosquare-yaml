@@ -107,6 +107,33 @@ describe(ImmosquareYaml) do
       expect(File.read(first)).to(eq(File.read(second)))
     end
 
+    it("preserves quoted numeric-looking translations as strings") do
+      source_path = File.join(tmp_dir, "numeric-looking.yml")
+      File.write(source_path, <<~YAML)
+        fr:
+          double_quoted_time: "02:14"
+          single_quoted_time: '02:14'
+          numeric_string: "36"
+          prefixed_time: "· 02:14"
+      YAML
+
+      expect(ImmosquareYaml.clean(source_path, :output => output_path)).to(eq(true))
+
+      content = File.read(output_path)
+      expect(content).to(include("double_quoted_time: \"02:14\""))
+      expect(content).to(include("single_quoted_time: \"02:14\""))
+      expect(content).to(include("numeric_string: \"36\""))
+      expect(content).to(include("prefixed_time: · 02:14"))
+
+      reloaded = YAML.safe_load_file(output_path)
+      expect(reloaded["fr"]).to(eq({
+        "double_quoted_time" => "02:14",
+        "numeric_string"     => "36",
+        "prefixed_time"      => "· 02:14",
+        "single_quoted_time" => "02:14"
+      }))
+    end
+
     it("fixes the v0.1.28 bug where folded scalars (>-) produced an empty hash") do
       ImmosquareYaml.clean(edge_cases_path, :output => output_path)
       content = File.read(output_path)
@@ -147,6 +174,18 @@ describe(ImmosquareYaml) do
     it("quotes values that contain ': '") do
       yaml = ImmosquareYaml.dump({"k" => "Hello: world"})
       expect(yaml).to(include("\"Hello: world\""))
+    end
+
+    it("quotes strings that Psych would implicitly type") do
+      data = {
+        "float"       => "3.14",
+        "integer"     => "36",
+        "null_string" => "null",
+        "sexagesimal" => "02:14"
+      }
+
+      yaml = ImmosquareYaml.dump(data)
+      expect(YAML.safe_load(yaml)).to(eq(data))
     end
 
     it("uses double-quoted by default and single-quoted only when necessary") do

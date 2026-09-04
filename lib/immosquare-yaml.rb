@@ -272,7 +272,8 @@ module ImmosquareYaml
     ##
     ## On quote si la valeur contient des caractères qui auraient
     ## un sens YAML particulier en plain (": ", " #", début par un
-    ## caractère spécial, fin par ":", mot réservé, espace en bord).
+    ## caractère spécial, fin par ":", espace en bord) ou si Psych
+    ## lui attribuerait un type implicite différent de String.
     ##============================================================##
     def format_scalar_value(value)
       value = value.to_s
@@ -298,7 +299,8 @@ module ImmosquareYaml
                     value.end_with?(":") ||
                     RESERVED_KEYS.include?(value) ||
                     value.start_with?(SPACE) ||
-                    value.end_with?(SPACE)
+                    value.end_with?(SPACE) ||
+                    psych_implicitly_types?(value)
 
       return value if !need_quotes
 
@@ -316,6 +318,15 @@ module ImmosquareYaml
       else
         yaml_double_quote(value)
       end
+    end
+
+    ##============================================================##
+    ## Détecte les scalaires plain que Psych convertirait en nombre,
+    ## valeur nulle, date ou heure lors du chargement YAML.
+    ##============================================================##
+    def psych_implicitly_types?(value)
+      scanner = Psych::ScalarScanner.new(Psych::ClassLoader.new, :parse_symbols => false)
+      !scanner.tokenize(value).is_a?(String)
     end
 
     ##============================================================##
