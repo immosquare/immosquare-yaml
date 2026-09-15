@@ -360,9 +360,10 @@ SimpleCov then writes `coverage/lcov.info` and an HTML report under `coverage/`.
 ```bash
 bin/ci init   # bundle install
 bin/ci test   # bundle exec rspec
+bin/ci        # both, in that order (the default, `all`)
 ```
 
-Everything specific to the build agent — RVM, installing the Ruby named in `.ruby-version` into the `.ruby-gemset` gemset, pinning bundler — is skipped when `JENKINS_WORKSPACE` is unset. The script always exports `BUNDLE_WITHOUT=development`, so **anything the specs need belongs to the `test` group of the Gemfile**, never to `development`. The pipeline itself lives in `Jenkinsfile`: it exports `COVERAGE=true` and publishes `coverage/lcov.info` to the Jenkins coverage plugin.
+The script provisions nothing itself: the CI runner installs the Ruby named in `.ruby-version` into the `.ruby-gemset` gemset before calling it. It always exports `BUNDLE_WITHOUT=development`, so **anything the specs need belongs to the `test` group of the Gemfile**, never to `development`. It also defaults `COVERAGE` to `true`, and the CI collects `coverage/lcov.info`.
 
 **License**
 
