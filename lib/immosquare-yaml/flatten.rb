@@ -138,11 +138,11 @@ module ImmosquareYaml
         entries.sort_by {|path, _value, file| [path, file.to_s] }
       elsif options[:with_values]
         entries.sort_by {|path, _value, file| [path, file.to_s] }
-               .map {|path, value, _file| [path, value] }
+          .map {|path, value, _file| [path, value] }
       elsif options[:with_file]
         entries.map  {|path, _value, file| [path, file] }
-               .uniq
-               .sort_by {|path, file| [path, file.to_s] }
+          .uniq
+          .sort_by {|path, file| [path, file.to_s] }
       else
         entries.map(&:first).uniq.sort
       end

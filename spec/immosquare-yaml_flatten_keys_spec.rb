@@ -41,10 +41,10 @@ describe(ImmosquareYaml) do
       YAML
 
       expect(ImmosquareYaml.flatten_keys(path)).to(eq([
-        "fr.app.leases.statuses.active",
-        "fr.app.leases.statuses.archived",
-        "fr.app.leases.title"
-      ]))
+                                                        "fr.app.leases.statuses.active",
+                                                        "fr.app.leases.statuses.archived",
+                                                        "fr.app.leases.title"
+                                                      ]))
     end
 
     it("quotes reserved YAML 1.1 keys in the path") do
@@ -146,11 +146,11 @@ describe(ImmosquareYaml) do
 
       paths = ImmosquareYaml.flatten_keys([fr, en])
       expect(paths).to(eq([
-        "en.app.body",
-        "en.app.title",
-        "fr.app.body",
-        "fr.app.title"
-      ]))
+                            "en.app.body",
+                            "en.app.title",
+                            "fr.app.body",
+                            "fr.app.title"
+                          ]))
     end
 
     ##============================================================##
@@ -164,9 +164,9 @@ describe(ImmosquareYaml) do
 
       pairs = ImmosquareYaml.flatten_keys([shared_a, shared_b], :with_values => true)
       expect(pairs).to(eq([
-        ["shared.key", "first"],
-        ["shared.key", "second"]
-      ]))
+                            ["shared.key", "first"],
+                            ["shared.key", "second"]
+                          ]))
     end
 
     it("returns [path, file] tuples when with_file: true") do
@@ -175,9 +175,9 @@ describe(ImmosquareYaml) do
 
       tuples = ImmosquareYaml.flatten_keys([fr, en], :with_file => true)
       expect(tuples).to(eq([
-        ["en.hello", en],
-        ["fr.hello", fr]
-      ]))
+                             ["en.hello", en],
+                             ["fr.hello", fr]
+                           ]))
     end
 
     it("returns [path, value, file] tuples when with_values + with_file") do
