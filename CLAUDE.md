@@ -94,7 +94,7 @@ Globs are NOT expanded — callers expand them upstream (e.g. `Dir.glob`). Mixin
   - Otherwise plain
 - **Scalar values**:
   - String containing `\n` → literal block `|` or `|-`
-  - String with a quoting trigger (`: `, ` #`, YAML-special start, trailing `:`, edge whitespace, reserved word) → quoted
+  - String with a quoting trigger (`: `, ` #`, YAML-special start, trailing `:`, edge whitespace, reserved word, or a plain scalar Psych would implicitly type — integer, float, `null`, time) → quoted
   - Style choice: **double-quoted by default**; single-quoted only if the value contains `"` or `\` (and no `\t`, which can only be encoded in double-quoted form)
   - Otherwise plain
 - **`nil`** → literal `null`
@@ -107,7 +107,7 @@ Globs are NOT expanded — callers expand them upstream (e.g. `Dir.glob`). Mixin
 bundle exec rspec
 ```
 
-Suite: 102 tests across 4 spec files.
+Suite: 104 tests across 4 spec files.
 
 - `spec/immosquare-yaml_spec.rb` — tests of the public API (parse/clean/dump) against `sample.en.yml` + `edge_cases.fr.yml`
 - `spec/immosquare-yaml_edge_cases_spec.rb` — 53 examples across 16 edge-case categories (Norway, numeric keys, deep nesting, interpolations, pluralization, HTML, emojis, typographic quotes, folded scalars, literal blocks, lists, special characters, quoting, null, currencies, naming) + a global-pipeline sanity check

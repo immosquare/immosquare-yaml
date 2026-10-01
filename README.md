@@ -103,9 +103,22 @@ en:
 
 **4. Minimal quoting**
 
-Strings are emitted plain whenever YAML allows it. Quotes appear only when the value would be ambiguous: contains `: `, ` #`, leading or trailing whitespace, starts with a YAML special character, ends with `:`, or matches a reserved word.
+Strings are emitted plain whenever YAML allows it. A value is quoted when plain style would be ambiguous, or when [Psych](https://github.com/ruby/psych) would not read the plain scalar back as a String.
+
+Ambiguous plain text contains `: ` or ` #`, has leading or trailing whitespace, starts with a YAML special character, ends with `:`, or matches a reserved word. The second trigger is Psych's own implicit typing: a string such as `36`, `3.14`, `null` or `02:14` is quoted, because an unquoted reload turns it into an Integer, a Float, `nil` or a sexagesimal number. A neighbouring string that Psych still reads as text, such as `· 02:14`, stays plain.
 
 When quoting is required, double-quoted is used by default. Single-quoted is used only when the value contains `"` or `\` (and no `\t`, which can only be encoded in double-quoted form).
+
+```ruby
+yaml = ImmosquareYaml.dump({"en" => {"count" => "36", "duration" => "02:14"}})
+puts yaml
+# en:
+#   count: "36"
+#   duration: "02:14"
+
+YAML.safe_load(yaml)
+# => {"en" => {"count" => "36", "duration" => "02:14"}}
+```
 
 **5. Unicode escapes decoded**
 
@@ -315,7 +328,7 @@ ImmosquareYaml.delete_paths("config/locales/fr.yml", "fr.app.foo", :sort => fals
 
 - Reserved or numeric keys are wrapped in double quotes
 - Strings containing `\n` are emitted as `|` or `|-` blocks
-- Strings that would be ambiguous in plain form are double-quoted by default; values containing `"` or `\` (and no `\t`) are single-quoted instead, with `'` doubled
+- Strings that would be ambiguous in plain form, or that Psych would implicitly type (an integer, a float, `null`, a time), are double-quoted by default; values containing `"` or `\` (and no `\t`) are single-quoted instead, with `'` doubled
 - Arrays are delegated to `Psych.dump` and re-indented to match the surrounding block
 
 `ImmosquareYaml.clean` is just `parse` + (optional sort) + `dump`, written to disk.
