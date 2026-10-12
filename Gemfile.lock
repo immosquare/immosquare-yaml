@@ -76,6 +76,8 @@ GEM
       racc (~> 1.4)
     nokogiri (1.19.4-x86_64-darwin)
       racc (~> 1.4)
+    nokogiri (1.19.4-x86_64-linux-gnu)
+      racc (~> 1.4)
     parallel (2.2.0)
     parser (3.3.12.0)
       ast (~> 2.4.1)
@@ -141,6 +143,7 @@ GEM
     uri (1.1.1)
 
 PLATFORMS
+  arm64-darwin
   arm64-darwin-22
   arm64-darwin-23
   arm64-darwin-24
@@ -148,6 +151,7 @@ PLATFORMS
   arm64-darwin-27
   x86_64-darwin-21
   x86_64-darwin-22
+  x86_64-linux
 
 DEPENDENCIES
   bundler
