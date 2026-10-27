@@ -1,3 +1,8 @@
+## [1.0.5] - 2026-10-27
+
+### Fixed
+- `dump`: preserve typographic quotes (`‘`, `’`, `“`, `”`, `‛`, `‚`, `„`, `‟`) instead of rewriting them to ASCII `'`. They are translation content: curly double quotes were previously degraded to single quotes and doubled apostrophes (`''`) were collapsed to one. Quote-only values (`'`, `''`) are also preserved instead of being emptied.
+
 ## [1.0.4] - 2026-09-04
 
 ### Fixed
