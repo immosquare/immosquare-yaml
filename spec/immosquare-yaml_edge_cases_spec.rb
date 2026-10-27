@@ -5,6 +5,23 @@ require "fileutils"
 require "date"
 require "tmpdir"
 
+SPECIAL_KEYS = {
+  "dash"         => "-tiret",
+  "asterisk"     => "*étoile",
+  "percent"      => "%pourcentage",
+  "ampersand"    => "&esperluette",
+  "hash"         => "#dièse",
+  "at"           => "@arobase",
+  "exclamation"  => "!exclamation",
+  "question"     => "?interrogation",
+  "pipe"         => "|barre",
+  "bracket_open" => "[crochet",
+  "angle_open"   => ">chevron",
+  "colon"        => ":deux-points",
+  "comma"        => ",virgule",
+  "backtick"     => "`backtick"
+}.freeze
+
 
 describe("ImmosquareYaml — edge cases") do
   let(:fixture) { "spec/fixtures/edge_cases.fr.yml" }
@@ -20,20 +37,6 @@ describe("ImmosquareYaml — edge cases") do
       @tmp_dir = dir
       FileUtils.cp(fixture, File.join(dir, "edge.yml"))
       example.run
-    end
-  end
-
-  ##============================================================##
-  ## Helper : normalise les apostrophes typographiques pour
-  ## comparer un hash original avec sa version cleanée
-  ## (la normalisation `’` → `'` est une feature du gem).
-  ##============================================================##
-  def normalize_quotes(v)
-    case v
-    when String then v.gsub(/[‘’]/, "'").gsub(/[“”]/, '"')
-    when Hash   then v.transform_values {|x| normalize_quotes(x) }
-    when Array  then v.map {|x| normalize_quotes(x) }
-    else             v
     end
   end
 
@@ -63,17 +66,12 @@ describe("ImmosquareYaml — edge cases") do
       expect(File.read(work)).to(eq(File.read(pass2)))
     end
 
-    it("preserves data after a parse/clean/parse round-trip (modulo intentional normalization)") do
+    it("preserves data after a parse/clean/parse round-trip") do
       orig = ImmosquareYaml.parse(work)
       ImmosquareYaml.clean(work)
       cleaned = ImmosquareYaml.parse(work)
 
-      ##============================================================##
-      ## On normalise nous-mêmes les typographic quotes côté orig
-      ## pour comparer le reste : la normalisation `'` est une
-      ## feature documentée du gem (cf. helper normalize_quotes).
-      ##============================================================##
-      expect(normalize_quotes(orig)).to(eq(cleaned))
+      expect(orig).to(eq(cleaned))
     end
   end
 
@@ -212,13 +210,13 @@ describe("ImmosquareYaml — edge cases") do
   end
 
   ##============================================================##
-  ## Typographic quotes — normalisation documentée.
+  ## Typographic quotes are translation content, independent of YAML quoting.
   ##============================================================##
-  describe("typographic quotes normalization") do
-    it("normalizes curly apostrophe to standard apostrophe") do
+  describe("typographic quotes preservation") do
+    it("preserves curly apostrophes") do
       ImmosquareYaml.clean(work)
       hash = ImmosquareYaml.parse(work)
-      expect(hash["fr"]["typography"]["curly_apostrophe"]).to(eq("L'utilisateur s'est connecté"))
+      expect(hash["fr"]["typography"]["curly_apostrophe"]).to(eq("L’utilisateur s’est connecté"))
     end
 
     it("preserves em-dash and ellipsis (not normalized)") do
@@ -310,23 +308,6 @@ describe("ImmosquareYaml — edge cases") do
   ## quoté pour ne pas être confondu avec un marqueur YAML.
   ##============================================================##
   describe("special leading characters") do
-    SPECIAL_KEYS = {
-      "dash"         => "-tiret",
-      "asterisk"     => "*étoile",
-      "percent"      => "%pourcentage",
-      "ampersand"    => "&esperluette",
-      "hash"         => "#dièse",
-      "at"           => "@arobase",
-      "exclamation"  => "!exclamation",
-      "question"     => "?interrogation",
-      "pipe"         => "|barre",
-      "bracket_open" => "[crochet",
-      "angle_open"   => ">chevron",
-      "colon"        => ":deux-points",
-      "comma"        => ",virgule",
-      "backtick"     => "`backtick"
-    }.freeze
-
     SPECIAL_KEYS.each do |key, expected|
       it("preserves '#{key}' value through clean + reparse") do
         ImmosquareYaml.clean(work)

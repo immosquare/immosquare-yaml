@@ -278,7 +278,6 @@ module ImmosquareYaml
     def format_scalar_value(value)
       value = value.to_s
       value = decode_unicode_escapes(value)
-      value = value.gsub(WEIRD_QUOTES_REGEX, SIMPLE_QUOTE)
 
       ##============================================================##
       ## On enlève les guillemets parasites éventuels (cas de fichiers
@@ -355,7 +354,7 @@ module ImmosquareYaml
     ## qui pouvaient contenir des valeurs avec quotes incluses.
     ##============================================================##
     def strip_wrapping_quotes(value)
-      value = value[1..-2] while (value.start_with?(DOUBLE_QUOTE) && value.end_with?(DOUBLE_QUOTE)) || (value.start_with?(SIMPLE_QUOTE) && value.end_with?(SIMPLE_QUOTE))
+      value = value[1..-2] while value.length > 2 && ((value.start_with?(DOUBLE_QUOTE) && value.end_with?(DOUBLE_QUOTE)) || (value.start_with?(SIMPLE_QUOTE) && value.end_with?(SIMPLE_QUOTE)))
       value
     end
 

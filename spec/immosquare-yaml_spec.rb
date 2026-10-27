@@ -216,6 +216,109 @@ describe(ImmosquareYaml) do
       expect(yaml).to(include("'say \"hi\": now'"))
     end
 
+    ##============================================================##
+    ## Guillemets typographiques : contenu de traduction, jamais
+    ## réécrits en guillemets ASCII au dump. Chaque caractère de
+    ## l'ancienne normalisation est couvert, dans les contextes
+    ## qui déclenchent ou non un quoting YAML.
+    ##============================================================##
+    describe("typographic quotes") do
+      typographic_chars = {
+        "left_single_quote"     => "‘",
+        "right_single_quote"    => "’",
+        "left_double_quote"     => "“",
+        "right_double_quote"    => "”",
+        "reversed_single_quote" => "‛",
+        "low_single_quote"      => "‚",
+        "low_double_quote"      => "„",
+        "reversed_double_quote" => "‟"
+      }
+
+      typographic_chars.each do |name, char|
+        it("preserves #{name} in the middle, at the edges and alone") do
+          data = {
+            "alone"    => char,
+            "leading"  => "#{char}debut",
+            "middle"   => "a#{char}b",
+            "trailing" => "fin#{char}"
+          }
+
+          expect(YAML.safe_load(ImmosquareYaml.dump(data))).to(eq(data))
+        end
+      end
+
+      it("does not convert curly quotes to ASCII quotes") do
+        yaml = ImmosquareYaml.dump({"k" => "L’utilisateur dit “bonjour”"})
+        expect(yaml).to(include("L’utilisateur dit “bonjour”"))
+        expect(yaml).not_to(include("L'utilisateur"))
+      end
+
+      it("preserves typographic quotes when YAML quoting is triggered") do
+        data = {
+          "backslash"    => "a’ \\ b",
+          "colon"        => "x’ : y",
+          "double_quote" => "a“ \"b\"",
+          "leading"      => "“debut"
+        }
+
+        expect(YAML.safe_load(ImmosquareYaml.dump(data))).to(eq(data))
+      end
+
+      it("preserves typographic quotes in literal blocks") do
+        data = {
+          "chomped"    => "ligne ‘un’\nligne “deux”",
+          "with_final" => "ligne ‘un’\nligne “deux”\n"
+        }
+
+        yaml = ImmosquareYaml.dump(data)
+        expect(yaml).to(include("‘un’"))
+        expect(YAML.safe_load(yaml)).to(eq(data))
+      end
+
+      it("preserves typographic quotes in arrays and keys") do
+        data = {
+          "list"          => ["a’b", "c“d"],
+          "l’utilisateur" => "v"
+        }
+
+        expect(YAML.safe_load(ImmosquareYaml.dump(data))).to(eq(data))
+      end
+
+      it("preserves double apostrophes and quote-only values") do
+        data = {
+          "double_apostrophe" => "''",
+          "double_quote"      => "\"",
+          "in_word"           => "l''utilisateur",
+          "leading"           => "''debut",
+          "single_apostrophe" => "'",
+          "trailing"          => "fin''"
+        }
+
+        expect(YAML.safe_load(ImmosquareYaml.dump(data))).to(eq(data))
+      end
+
+      it("round-trips typographic quotes through parse and clean without alteration") do
+        data = {
+          "fr" => {
+            "curly"   => "L’utilisateur s’est connecté",
+            "quoted"  => "Il dit “bonjour”",
+            "doubled" => "l''utilisateur"
+          }
+        }
+
+        path = File.join(tmp_dir, "typographic.yml")
+        File.write(path, ImmosquareYaml.dump(data))
+        expect(ImmosquareYaml.parse(path)).to(eq(data))
+
+        expect(ImmosquareYaml.clean(path)).to(eq(true))
+        cleaned = File.read(path)
+        expect(ImmosquareYaml.parse(path)).to(eq(data))
+
+        expect(ImmosquareYaml.clean(path)).to(eq(true))
+        expect(File.read(path)).to(eq(cleaned))
+      end
+    end
+
     it("renders multi-line strings as literal blocks") do
       yaml = ImmosquareYaml.dump({"k" => "line1\nline2\nline3"})
       expect(yaml).to(include("k: |-"))
